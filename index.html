@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Higo KOL 个人管理系统 · 终极修复版</title>
+    <title>Higo KOL 管理系统 · 最终版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -41,11 +41,14 @@
         .edit-btn { cursor: pointer; color: #4F46E5; margin-right: 8px; }
         .edit-btn:hover { color: #3730A3; }
         .empty-row td { padding: 30px; text-align: center; color: #94A3B8; font-style: italic; }
-        .file-preview { max-width: 100px; max-height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #E2E8F0; }
         .badge { @apply text-xs px-2.5 py-1 rounded-full border font-medium; }
         .status-active { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
         .status-pending { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
         video { max-width: 100%; max-height: 120px; border-radius: 4px; }
+        .file-preview-link { color: #4F46E5; text-decoration: underline; cursor: pointer; }
+        .file-preview-link:hover { color: #3730A3; }
+        .asset-video { max-width: 160px; max-height: 90px; border-radius: 6px; border: 1px solid #E2E8F0; }
+        .asset-translate { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
     </style>
 </head>
 <body>
@@ -269,12 +272,14 @@
     <div class="content-area">
         <div class="topbar">
             <div class="text-lg font-bold text-gray-800">服务内容</div>
-            <button onclick="openDrawer('drawer-content')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新建服务</button>
+            <div class="flex gap-3">
+                <input type="text" id="contentSearch" placeholder="搜索 合同ID / KOL名称..." class="form-input py-1.5 w-64 text-sm" oninput="renderContent()">
+            </div>
         </div>
         <div class="main-content pt-6">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
                 <table class="w-full text-left min-w-[1100px]">
-                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL / 平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style">发布链接</th><th class="th-style">视频</th><th class="th-style text-right">操作</th></tr></thead>
+                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style">发布链接</th><th class="th-style">视频</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="contentTableBody"></tbody>
                 </table>
             </div>
@@ -282,17 +287,12 @@
         <div id="drawer-content" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-content')">
             <div class="drawer" onclick="event.stopPropagation()">
                 <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800" id="contentDrawerTitle">新建服务内容</h2>
+                    <h2 class="text-lg font-bold text-gray-800" id="contentDrawerTitle">编辑服务内容</h2>
                     <i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-content')"></i>
                 </div>
                 <div class="flex-1 overflow-y-auto p-8 space-y-6">
                     <input type="hidden" id="contentEditId">
-                    <div class="section-title mt-0">关联合同</div>
-                    <div><label class="form-label">输入合同ID <span class="text-red-500">*</span></label>
-                        <input type="text" id="contentContractSearch" class="form-input" placeholder="输入合同ID..." oninput="searchContractForContent()">
-                        <div id="contentContractSuggest" class="mt-1 text-sm text-gray-500"></div>
-                        <input type="hidden" id="contentContractId">
-                    </div>
+                    <div class="section-title mt-0">关联合同 (自动生成)</div>
                     <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg grid grid-cols-3 gap-4 text-sm">
                         <div><span class="text-gray-500">KOL</span><div class="font-bold" id="contentPreviewKol">-</div></div>
                         <div><span class="text-gray-500">平台</span><div class="font-bold" id="contentPreviewPlatform">-</div></div>
@@ -447,7 +447,7 @@
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
                 <table class="w-full text-left min-w-[1000px]">
-                    <thead><tr><th class="th-style w-32 text-center">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style">翻译 (中文)</th><th class="th-style">发布链接</th></tr></thead>
+                    <thead><tr><th class="th-style w-40 text-center">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style w-48">翻译 (中文)</th><th class="th-style">发布链接</th></tr></thead>
                     <tbody id="assetTableBody"></tbody>
                 </table>
             </div>
@@ -462,6 +462,32 @@
     let contractData = JSON.parse(localStorage.getItem('contractData')) || [];
     let contentData = JSON.parse(localStorage.getItem('contentData')) || [];
     let paymentData = JSON.parse(localStorage.getItem('paymentData')) || [];
+
+    // ========== ID生成工具 ==========
+    function generateId(prefix) {
+        const now = new Date();
+        const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
+        // 根据前缀获取对应数据数组
+        let arr;
+        if (prefix === 'Q') arr = quoteData;
+        else if (prefix === 'CTR') arr = contractData;
+        else if (prefix === 'S') arr = contentData;
+        else if (prefix === 'Payment') arr = paymentData;
+        else return prefix + '_' + dateStr + '_001';
+        // 筛选当天该前缀的ID
+        const dayIds = arr.filter(item => item.id.startsWith(prefix + '_' + dateStr));
+        const seq = dayIds.length + 1;
+        return prefix + '_' + dateStr + '_' + String(seq).padStart(3,'0');
+    }
+
+    function generatePaymentId(contractId) {
+        const payments = paymentData.filter(p => p.contractId === contractId);
+        const seq = String(payments.length + 1).padStart(2,'0');
+        return 'Payment_' + contractId + '_' + seq;
+    }
+
+    function generateInvoiceId(contractId) { return 'Invoice_' + contractId; }
+    function generateAgrId(contractId) { return 'Agr_' + contractId; }
 
     function saveAll() {
         localStorage.setItem('kolData', JSON.stringify(kolData));
@@ -604,7 +630,7 @@
         if (!kolId || !platform || !format || !qty || !amount) { alert('请填写所有必填项'); return; }
         const kol = kolData.find(k => k.id === parseInt(kolId));
         if (!kol) { alert('请选择有效的KOL'); return; }
-        const obj = { id: id || 'Q_' + Date.now().toString(36).toUpperCase(), kolId: parseInt(kolId), kol: kol.name, platform, format, qty: parseInt(qty), amount: parseFloat(amount), note: document.getElementById('quoteNote').value.trim() };
+        const obj = { id: id || generateId('Q'), kolId: parseInt(kolId), kol: kol.name, platform, format, qty: parseInt(qty), amount: parseFloat(amount), note: document.getElementById('quoteNote').value.trim() };
         if (id) { const idx = quoteData.findIndex(q => q.id === id); if (idx>-1) quoteData[idx] = obj; } else { quoteData.push(obj); }
         saveAll();
         forceCloseDrawer('drawer-quote');
@@ -657,7 +683,7 @@
                 <td class="td-style font-bold text-gray-900">${c.id}</td><td class="td-style font-mono text-xs">${c.quoteId}</td>
                 <td class="td-style">${c.kol}</td><td class="td-style">${c.payMethod}</td>
                 <td class="td-style font-bold">$ ${c.amount}</td>
-                <td class="td-style">${c.fileData ? `<a href="${c.fileData}" target="_blank" class="text-indigo-600 underline text-sm">📄 查看PDF</a>` : '-'}</td>
+                <td class="td-style">${c.fileData ? `<a href="${c.fileData}" target="_blank" class="file-preview-link">📄 查看PDF</a>` : '-'}</td>
                 <td class="td-style text-right">
                     <span class="edit-btn" onclick="editContract('${c.id}')"><i class="fa-solid fa-pen"></i></span>
                     <span class="delete-btn" onclick="deleteContract('${c.id}')"><i class="fa-solid fa-trash"></i></span>
@@ -679,7 +705,8 @@
         document.getElementById('contractEnd').value = c.end||'';
         if (c.fileData) {
             document.getElementById('contractFileName').textContent = '已上传PDF';
-            document.getElementById('contractFilePreview').innerHTML = `<a href="${c.fileData}" target="_blank" class="text-indigo-600 underline">📄 查看当前PDF</a>`;
+            document.getElementById('contractFilePreview').innerHTML = `<a href="${c.fileData}" target="_blank" class="file-preview-link">📄 查看当前PDF</a>`;
+            document.getElementById('contractFilePreview').dataset.fileData = c.fileData;
         }
         openDrawer('drawer-contract');
     }
@@ -690,8 +717,9 @@
             document.getElementById('contractFileName').textContent = file.name;
             const reader = new FileReader();
             reader.onload = function(e) {
-                document.getElementById('contractFilePreview').innerHTML = `<a href="${e.target.result}" target="_blank" class="text-indigo-600 underline">📄 查看已选PDF</a>`;
-                document.getElementById('contractFilePreview').dataset.fileData = e.target.result;
+                const dataUrl = e.target.result;
+                document.getElementById('contractFilePreview').innerHTML = `<a href="${dataUrl}" target="_blank" class="file-preview-link">📄 查看已选PDF</a>`;
+                document.getElementById('contractFilePreview').dataset.fileData = dataUrl;
             };
             reader.readAsDataURL(file);
         }
@@ -706,9 +734,11 @@
         const payMethod = document.querySelector('input[name="pay"]:checked')?.value || '一次性';
         const filePreview = document.getElementById('contractFilePreview');
         const fileData = filePreview.dataset.fileData || '';
-        const obj = { id: id || 'CTR_' + Date.now().toString(36).toUpperCase(), quoteId, kol: q.kol, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
+        const obj = { id: id || generateId('CTR'), quoteId, kol: q.kol, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
         if (id) { const idx = contractData.findIndex(c => c.id === id); if (idx>-1) contractData[idx] = obj; } else { contractData.push(obj); }
         saveAll();
+        // 自动生成服务内容
+        autoGenerateContent(obj);
         forceCloseDrawer('drawer-contract');
         document.getElementById('contractEditId').value = '';
         document.getElementById('contractDrawerTitle').textContent = '创建合同';
@@ -723,54 +753,44 @@
         clearContractPreview();
     }
 
-    function deleteContract(id) { if (confirm('确认删除？')) { contractData = contractData.filter(c => c.id !== id); saveAll(); } }
+    function autoGenerateContent(contract) {
+        // 检查是否已存在该合同的服务内容
+        const exists = contentData.some(c => c.contractId === contract.id);
+        if (exists) return;
+        const contentId = generateId('S');
+        contentData.push({
+            id: contentId,
+            contractId: contract.id,
+            kol: contract.kol,
+            platform: contract.platform || '',
+            format: contract.format || '',
+            spk: '',
+            expiry: '',
+            url: '',
+            zh: '',
+            videoData: ''
+        });
+        saveAll();
+    }
+
+    function deleteContract(id) { if (confirm('确认删除？')) { contractData = contractData.filter(c => c.id !== id); contentData = contentData.filter(c => c.contractId !== id); saveAll(); } }
 
     // ========== 服务内容 ==========
-    function searchContractForContent() {
-        const input = document.getElementById('contentContractSearch').value.trim();
-        const suggest = document.getElementById('contentContractSuggest');
-        if (!input) { suggest.innerHTML = ''; document.getElementById('contentContractId').value = ''; clearContentPreview(); return; }
-        const found = contractData.filter(c => c.id.toLowerCase().includes(input.toLowerCase()));
-        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该合同</span>'; document.getElementById('contentContractId').value = ''; clearContentPreview(); return; }
-        suggest.innerHTML = found.map(c => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectContractForContent('${c.id}')">${c.id} - ${c.kol}</span>`).join('');
-    }
-
-    function selectContractForContent(id) {
-        const c = contractData.find(c => c.id === id);
-        if (!c) return;
-        document.getElementById('contentContractSearch').value = id;
-        document.getElementById('contentContractId').value = id;
-        document.getElementById('contentContractSuggest').innerHTML = `<span class="text-green-600">已关联: ${id}</span>`;
-        document.getElementById('contentPreviewKol').textContent = c.kol || '-';
-        document.getElementById('contentPreviewPlatform').textContent = c.platform || '-';
-        document.getElementById('contentPreviewFormat').textContent = c.format || '-';
-    }
-
-    function clearContentPreview() {
-        document.getElementById('contentPreviewKol').textContent = '-';
-        document.getElementById('contentPreviewPlatform').textContent = '-';
-        document.getElementById('contentPreviewFormat').textContent = '-';
-    }
-
-    function previewVideo(input) {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${e.target.result}" class="max-h-32 rounded border"></video>`;
-                document.getElementById('contentVideoPreview').dataset.videoData = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
     function renderContent() {
+        const search = document.getElementById('contentSearch').value.toLowerCase();
+        let list = contentData.filter(c => {
+            const matchContract = c.contractId.toLowerCase().includes(search);
+            const matchKol = c.kol.toLowerCase().includes(search);
+            return matchContract || matchKol;
+        });
         const tbody = document.getElementById('contentTableBody');
-        if (contentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">暂无服务，点击 "新建服务" 添加</td></tr>`; return; }
-        tbody.innerHTML = contentData.map(c => `
+        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="10">暂无服务内容，创建合同后自动生成</td></tr>`; return; }
+        tbody.innerHTML = list.map(c => `
             <tr class="hover:bg-gray-50">
-                <td class="td-style font-mono text-xs">${c.id}</td><td class="td-style text-xs">${c.contractId || '-'}</td>
-                <td class="td-style">${c.kol || '-'} / ${c.platform || '-'}</td>
+                <td class="td-style font-mono text-xs">${c.id}</td>
+                <td class="td-style text-xs">${c.contractId || '-'}</td>
+                <td class="td-style font-medium">${c.kol || '-'}</td>
+                <td class="td-style">${c.platform || '-'}</td>
                 <td class="td-style">${c.format || '-'}</td>
                 <td class="td-style text-xs text-gray-500">${c.spk || '-'}</td>
                 <td class="td-style text-xs">${c.expiry || '-'}</td>
@@ -789,9 +809,10 @@
         if (!c) return;
         document.getElementById('contentEditId').value = id;
         document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
-        document.getElementById('contentContractSearch').value = c.contractId || '';
-        document.getElementById('contentContractId').value = c.contractId || '';
-        if (c.contractId) selectContractForContent(c.contractId);
+        // 显示关联信息
+        document.getElementById('contentPreviewKol').textContent = c.kol || '-';
+        document.getElementById('contentPreviewPlatform').textContent = c.platform || '-';
+        document.getElementById('contentPreviewFormat').textContent = c.format || '-';
         document.getElementById('contentSpk').value = c.spk||'';
         document.getElementById('contentExpiry').value = c.expiry||'';
         document.getElementById('contentUrl').value = c.url||'';
@@ -799,32 +820,52 @@
         if (c.videoData) {
             document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${c.videoData}" class="max-h-32 rounded border"></video>`;
             document.getElementById('contentVideoPreview').dataset.videoData = c.videoData;
+        } else {
+            document.getElementById('contentVideoPreview').innerHTML = '';
+            document.getElementById('contentVideoPreview').dataset.videoData = '';
         }
         openDrawer('drawer-content');
     }
 
+    function previewVideo(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${e.target.result}" class="max-h-32 rounded border"></video>`;
+                document.getElementById('contentVideoPreview').dataset.videoData = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     function saveContent() {
         const id = document.getElementById('contentEditId').value;
-        const contractId = document.getElementById('contentContractId').value;
-        if (!contractId) { alert('请输入有效的合同ID'); return; }
-        const contract = contractData.find(c => c.id === contractId);
         const videoPreview = document.getElementById('contentVideoPreview');
-        const obj = { id: id || 'S_' + Date.now().toString(36).toUpperCase(), contractId, kol: contract ? contract.kol : '', platform: contract ? contract.platform : '', format: contract ? contract.format : '', spk: document.getElementById('contentSpk').value.trim(), expiry: document.getElementById('contentExpiry').value, url: document.getElementById('contentUrl').value.trim(), zh: document.getElementById('contentZh').value.trim(), videoData: videoPreview.dataset.videoData || '' };
-        if (id) { const idx = contentData.findIndex(c => c.id === id); if (idx>-1) contentData[idx] = obj; } else { contentData.push(obj); }
+        const obj = {
+            id: id,
+            contractId: contentData.find(c => c.id === id)?.contractId || '',
+            kol: contentData.find(c => c.id === id)?.kol || '',
+            platform: contentData.find(c => c.id === id)?.platform || '',
+            format: contentData.find(c => c.id === id)?.format || '',
+            spk: document.getElementById('contentSpk').value.trim(),
+            expiry: document.getElementById('contentExpiry').value,
+            url: document.getElementById('contentUrl').value.trim(),
+            zh: document.getElementById('contentZh').value.trim(),
+            videoData: videoPreview.dataset.videoData || ''
+        };
+        const idx = contentData.findIndex(c => c.id === id);
+        if (idx > -1) contentData[idx] = obj;
         saveAll();
         forceCloseDrawer('drawer-content');
         document.getElementById('contentEditId').value = '';
-        document.getElementById('contentDrawerTitle').textContent = '新建服务内容';
-        document.getElementById('contentContractSearch').value = '';
-        document.getElementById('contentContractId').value = '';
-        document.getElementById('contentContractSuggest').innerHTML = '';
+        document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
         document.getElementById('contentSpk').value = '';
         document.getElementById('contentExpiry').value = '';
         document.getElementById('contentUrl').value = '';
         document.getElementById('contentZh').value = '';
         document.getElementById('contentVideoPreview').innerHTML = '';
         document.getElementById('contentVideoPreview').dataset.videoData = '';
-        clearContentPreview();
     }
 
     function deleteContent(id) { if (confirm('确认删除？')) { contentData = contentData.filter(c => c.id !== id); saveAll(); } }
@@ -872,8 +913,8 @@
                 <td class="td-style font-medium">${p.kol}</td>
                 <td class="td-style font-bold text-indigo-600">$ ${p.amount}</td>
                 <td class="td-style"><span class="badge ${p.status === '已打款' ? 'status-active' : 'status-pending'}">${p.status}</span></td>
-                <td class="td-style">${p.invoiceData ? `<a href="${p.invoiceData}" target="_blank" class="text-indigo-600 text-sm">📄 查看</a>` : '-'}</td>
-                <td class="td-style">${p.voucherData ? `<a href="${p.voucherData}" target="_blank" class="text-indigo-600 text-sm">📄 查看</a>` : '-'}</td>
+                <td class="td-style">${p.invoiceData ? `<a href="${p.invoiceData}" target="_blank" class="file-preview-link">📄 查看</a>` : '-'}</td>
+                <td class="td-style">${p.voucherData ? `<a href="${p.voucherData}" target="_blank" class="file-preview-link">📄 查看</a>` : '-'}</td>
                 <td class="td-style text-right">
                     <span class="edit-btn" onclick="editPayment('${p.id}')"><i class="fa-solid fa-pen"></i></span>
                     <span class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fa-solid fa-trash"></i></span>
@@ -900,8 +941,14 @@
         document.getElementById('paymentBeneficiaryAddr').value = p.beneficiaryAddr || '';
         document.getElementById('paymentStatus').value = p.status || '待打款';
         document.getElementById('paymentNote').value = p.note || '';
-        if (p.invoiceData) document.getElementById('invoicePreview').innerHTML = `<a href="${p.invoiceData}" target="_blank" class="text-indigo-600 underline">📄 查看Invoice</a>`;
-        if (p.voucherData) document.getElementById('voucherPreview').innerHTML = `<a href="${p.voucherData}" target="_blank" class="text-indigo-600 underline">📄 查看凭证</a>`;
+        if (p.invoiceData) {
+            document.getElementById('invoicePreview').innerHTML = `<a href="${p.invoiceData}" target="_blank" class="file-preview-link">📄 查看Invoice</a>`;
+            document.getElementById('invoicePreview').dataset.fileData = p.invoiceData;
+        }
+        if (p.voucherData) {
+            document.getElementById('voucherPreview').innerHTML = `<a href="${p.voucherData}" target="_blank" class="file-preview-link">📄 查看凭证</a>`;
+            document.getElementById('voucherPreview').dataset.fileData = p.voucherData;
+        }
         openDrawer('drawer-payment');
     }
 
@@ -911,9 +958,10 @@
             document.getElementById(nameId).textContent = file.name;
             const reader = new FileReader();
             reader.onload = function(e) {
+                const dataUrl = e.target.result;
                 const div = document.getElementById(previewId);
-                div.innerHTML = `<a href="${e.target.result}" target="_blank" class="text-indigo-600 underline">📄 查看文件</a>`;
-                div.dataset.fileData = e.target.result;
+                div.innerHTML = `<a href="${dataUrl}" target="_blank" class="file-preview-link">📄 查看文件</a>`;
+                div.dataset.fileData = dataUrl;
             };
             reader.readAsDataURL(file);
         }
@@ -934,7 +982,23 @@
         if (parseFloat(amount) > parseFloat(contract.amount)) { alert('付款金额不能超过总金额 $' + contract.amount); return; }
         const invoicePreview = document.getElementById('invoicePreview');
         const voucherPreview = document.getElementById('voucherPreview');
-        const obj = { id: id || 'PAY_' + Date.now().toString(36).toUpperCase(), contractId, kol: contract.kol, amount: parseFloat(amount), channel: document.getElementById('paymentChannel').value, beneficiary, iban, bank, swift, bankAddr: document.getElementById('paymentBankAddr').value.trim(), beneficiaryAddr: document.getElementById('paymentBeneficiaryAddr').value.trim(), status: document.getElementById('paymentStatus').value, note: document.getElementById('paymentNote').value.trim(), invoiceData: invoicePreview.dataset.fileData || '', voucherData: voucherPreview.dataset.fileData || '' };
+        const obj = {
+            id: id || generatePaymentId(contractId),
+            contractId,
+            kol: contract.kol,
+            amount: parseFloat(amount),
+            channel: document.getElementById('paymentChannel').value,
+            beneficiary,
+            iban,
+            bank,
+            swift,
+            bankAddr: document.getElementById('paymentBankAddr').value.trim(),
+            beneficiaryAddr: document.getElementById('paymentBeneficiaryAddr').value.trim(),
+            status: document.getElementById('paymentStatus').value,
+            note: document.getElementById('paymentNote').value.trim(),
+            invoiceData: invoicePreview.dataset.fileData || '',
+            voucherData: voucherPreview.dataset.fileData || ''
+        };
         if (id) { const idx = paymentData.findIndex(p => p.id === id); if (idx>-1) paymentData[idx] = obj; } else { paymentData.push(obj); }
         saveAll();
         forceCloseDrawer('drawer-payment');
@@ -991,12 +1055,12 @@
         tbody.innerHTML = list.map(c => {
             const contract = contractData.find(ct => ct.id === c.contractId);
             return `<tr class="hover:bg-gray-50">
-                <td class="td-style text-center">${c.videoData ? `<video controls src="${c.videoData}" class="max-h-16 rounded border"></video>` : '-'}</td>
+                <td class="td-style text-center">${c.videoData ? `<video controls src="${c.videoData}" class="asset-video"></video>` : '-'}</td>
                 <td class="td-style font-bold">${c.kol || (contract?contract.kol:'-')}</td>
                 <td class="td-style">${c.platform || (contract?contract.platform:'-')}</td>
                 <td class="td-style">${c.format || (contract?contract.format:'-')}</td>
                 <td class="td-style text-xs">${c.spk || '-'}</td>
-                <td class="td-style text-xs">${c.zh || '-'}</td>
+                <td class="td-style"><span class="asset-translate" title="${c.zh || '-'}">${c.zh || '-'}</span></td>
                 <td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a>` : '-'}</td>
             </tr>`;
         }).join('');
