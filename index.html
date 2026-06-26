@@ -1,1109 +1,447 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Higo KOL 管理系统 · 最终修复版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        * { box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #F8FAFC; margin: 0; overflow: hidden; height: 100vh; width: 100vw; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .view-container { width: 100%; height: 100%; display: none; flex-direction: row; }
-        .view-container.active { display: flex; }
-        .sidebar { width: 220px; background: #0F172A; color: #94A3B8; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar .logo { height: 64px; display: flex; align-items: center; padding: 0 20px; color: #fff; font-weight: 700; font-size: 18px; border-bottom: 1px solid #1E293B; }
-        .nav-item { padding: 14px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .nav-item.active { background: #4F46E5; color: #fff; }
-        .nav-item:hover:not(.active) { color: #fff; background: #1E293B; }
-        .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .topbar { height: 64px; background: #fff; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; flex-shrink: 0; }
-        .main-content { padding: 24px; overflow-y: auto; flex: 1; }
-        .th-style { padding: 12px 16px; font-size: 13px; font-weight: 600; color: #64748B; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
-        .td-style { padding: 16px; font-size: 14px; color: #334155; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
-        .drawer-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; display: none; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease; }
-        .drawer-overlay.show { display: flex; opacity: 1; }
-        .drawer { width: 50vw; min-width: 720px; background: #fff; height: 100%; box-shadow: -10px 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .drawer-overlay.show .drawer { transform: translateX(0); }
-        .form-label { display: block; font-size: 13px; color: #475569; font-weight: 500; margin-bottom: 6px; }
-        .form-input { width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 14px; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; }
-        .form-input:focus { border-color: #4F46E5; box-shadow: 0 0 0 2px rgba(79,70,229,0.1); }
-        .form-input:disabled, .form-input[readonly] { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; }
-        .section-title { font-size: 15px; font-weight: 700; color: #1E293B; margin: 28px 0 16px 0; display: flex; align-items: center; gap: 8px; }
-        .section-title::before { content: ''; display: block; width: 4px; height: 14px; background: #4F46E5; border-radius: 2px; }
-        .btn-primary { @apply bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm transition; }
-        .btn-outline { @apply border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 transition; }
-        .delete-btn { cursor: pointer; color: #EF4444; }
-        .delete-btn:hover { color: #B91C1C; }
-        .edit-btn { cursor: pointer; color: #4F46E5; margin-right: 8px; }
-        .edit-btn:hover { color: #3730A3; }
-        .empty-row td { padding: 30px; text-align: center; color: #94A3B8; font-style: italic; }
-        .badge { @apply text-xs px-2.5 py-1 rounded-full border font-medium; }
-        .status-active { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
-        .status-pending { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
-        video { max-width: 100%; max-height: 120px; border-radius: 4px; }
-        .file-preview-link { color: #4F46E5; text-decoration: underline; cursor: pointer; }
-        .file-preview-link:hover { color: #3730A3; }
-        .asset-video { max-width: 220px; max-height: 140px; border-radius: 6px; border: 1px solid #E2E8F0; }
-        .asset-translate { max-width: 260px; word-break: break-word; display: inline-block; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Higo KOL 管理系统 </title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap');
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+    .view-container { width: 100%; height: 100%; display: none; flex-direction: row; }
+    .view-container.active { display: flex; }
+    .sidebar {
+      width: 240px;
+      background: #0f172a;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar .logo {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      color: white;
+      font-weight: 700;
+      font-size: 19px;
+      border-bottom: 1px solid #1e293b;
+      letter-spacing: -0.3px;
+    }
+    .nav-item {
+      padding: 13px 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: 0.2s;
+      font-weight: 500;
+      border-left: 3px solid transparent;
+    }
+    .nav-item.active { background: #4f46e5; color: white; border-left: 3px solid #a5b4fc; }
+    .nav-item:hover:not(.active) { color: #f1f5f9; background: #1e293b; }
+    .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #f8fafc; }
+    .topbar {
+      height: 68px;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 28px;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .main-content { padding: 24px; overflow-y: auto; flex: 1; }
+    .th-style {
+      padding: 14px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+      background: #f1f5f9;
+      border-bottom: 1px solid #e2e8f0;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+    .td-style {
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      color: #1e293b;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .drawer-overlay {
+      position: fixed; inset: 0; background: rgba(15,23,42,0.5);
+      z-index: 50; display: none; justify-content: flex-end;
+      opacity: 0; transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.show { display: flex; opacity: 1; }
+    .drawer {
+      width: 55vw; min-width: 700px; max-width: 900px;
+      background: white; height: 100vh; box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+      display: flex; flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .drawer-overlay.show .drawer { transform: translateX(0); }
+    .form-input {
+      width: 100%; border: 1px solid #cbd5e1; border-radius: 8px;
+      padding: 10px 14px; font-size: 0.9rem; outline: none;
+      transition: 0.15s; background: white;
+    }
+    .form-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
+    .section-title {
+      font-size: 1rem; font-weight: 700; color: #0f172a;
+      margin: 24px 0 14px 0; display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::before {
+      content: ''; display: block; width: 5px; height: 18px;
+      background: #4f46e5; border-radius: 4px;
+    }
+    .asset-video {
+      max-width: 240px; max-height: 150px; border-radius: 10px;
+      border: 1px solid #e2e8f0; object-fit: cover;
+    }
+    .file-preview-link {
+      color: #2563eb; text-decoration: underline; cursor: pointer; font-weight: 500;
+    }
+    .badge {
+      padding: 4px 12px; border-radius: 40px; font-size: 0.7rem;
+      font-weight: 600; display: inline-block;
+    }
+    .status-active { background: #dbeafe; color: #1e40af; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+  </style>
 </head>
 <body>
 
-<!-- ==================== 1. KOL资源库 ==================== -->
+<!-- KOL 资源库视图 -->
 <div id="view-kol" class="view-container active">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item active" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
+  <div class="sidebar">
+    <div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div>
+    <div class="nav-item active" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div>
+    <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div>
+    <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div>
+    <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div>
+    <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div>
+    <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div>
+    <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div>
+  </div>
+  <div class="content-area">
+    <div class="topbar"><span class="text-xl font-bold text-slate-800">KOL资源库</span><div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">OP</div></div>
+    <div class="main-content">
+      <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="p-4 flex flex-wrap gap-3 justify-between bg-white border-b">
+          <div class="flex gap-3">
+            <input type="text" id="kolSearch" placeholder="搜索昵称/邮箱..." class="form-input w-56" oninput="renderKol()">
+            <select id="kolFilter" class="form-input w-32" onchange="renderKol()"><option value="all">所有属性</option><option value="个人">个人</option><option value="中介">中介</option></select>
+          </div>
+          <button onclick="openDrawer('drawer-kol')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold shadow-sm"><i class="fa-solid fa-plus mr-1"></i>录入KOL</button>
+        </div>
+        <div class="overflow-x-auto"><table class="w-full text-left min-w-[1000px]"><thead><tr><th class="th-style">KOL昵称</th><th class="th-style">平台</th><th class="th-style">粉丝数</th><th class="th-style">地区</th><th class="th-style">标签</th><th class="th-style">主页链接</th><th class="th-style">属性</th><th class="th-style text-right">操作</th></tr></thead><tbody id="kolTableBody"></tbody></table></div>
+      </div>
     </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-sm font-bold text-gray-800 text-lg">KOL资源库</div>
-            <div class="flex items-center gap-2"><div class="w-8 h-8 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">OP</div></div>
-        </div>
-        <div class="main-content">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-0 overflow-hidden">
-                <div class="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3 bg-gray-50">
-                    <div class="flex flex-wrap gap-3">
-                        <input type="text" id="kolSearch" placeholder="搜索 昵称/邮箱..." class="form-input w-64 py-1.5" oninput="renderKol()">
-                        <select id="kolFilter" class="form-input w-32 py-1.5" onchange="renderKol()">
-                            <option value="all">所有属性</option>
-                            <option value="个人">个人</option>
-                            <option value="中介">中介</option>
-                        </select>
-                    </div>
-                    <button onclick="openDrawer('drawer-kol')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 录入KOL</button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left min-w-[900px]">
-                        <thead><tr><th class="th-style">KOL昵称</th><th class="th-style">平台/渠道</th><th class="th-style">粉丝数</th><th class="th-style">国家/地区</th><th class="th-style">垂类标签</th><th class="th-style">邮箱</th><th class="th-style">属性</th><th class="th-style text-right">操作</th></tr></thead>
-                        <tbody id="kolTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <!-- Drawer KOL -->
-        <div id="drawer-kol" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-kol')">
-            <div class="drawer" onclick="event.stopPropagation()">
-                <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800" id="kolDrawerTitle">录入 KOL 资源</h2>
-                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700 text-xl" onclick="forceCloseDrawer('drawer-kol')"></i>
-                </div>
-                <div class="flex-1 overflow-y-auto p-8">
-                    <input type="hidden" id="kolEditId">
-                    <div class="section-title mt-0">基础信息</div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div><label class="form-label">KOL昵称 <span class="text-red-500">*</span></label><input id="kolName" type="text" class="form-input" placeholder="输入平台昵称"></div>
-                        <div><label class="form-label">平台/渠道 <span class="text-red-500">*</span></label><select id="kolPlatform" class="form-input"><option>TikTok</option><option>Instagram</option><option>YouTube</option></select></div>
-                        <div class="col-span-2"><label class="form-label">主页链接 (URL) <span class="text-red-500">*</span></label><input id="kolUrl" type="url" class="form-input" placeholder="https://..."></div>
-                        <div><label class="form-label">粉丝数 <span class="text-red-500">*</span></label><input id="kolFollowers" type="text" class="form-input" placeholder="例如: 24k, 1.2M"></div>
-                        <div><label class="form-label">国家/地区 <span class="text-red-500">*</span></label><select id="kolCountry" class="form-input"><option>土耳其 (TR)</option><option>其他</option></select></div>
-                        <div><label class="form-label">语言 (多选)</label><input id="kolLang" type="text" class="form-input" placeholder="土耳其语, 英语"></div>
-                        <div><label class="form-label">性别</label><select id="kolGender" class="form-input"><option>女</option><option>男</option><option>其他</option></select></div>
-                        <div><label class="form-label">属性 <span class="text-red-500">*</span></label><select id="kolType" class="form-input"><option value="个人">个人</option><option value="中介">中介</option></select></div>
-                    </div>
-                    <div class="section-title">联系与标签</div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div><label class="form-label">手机号</label><input id="kolPhone" type="text" class="form-input" placeholder="+90 ..."></div>
-                        <div><label class="form-label">邮箱</label><input id="kolEmail" type="email" class="form-input" placeholder="example@mail.com"></div>
-                        <div class="col-span-2"><label class="form-label">垂类标签 (自由编辑) <span class="text-red-500">*</span></label><input id="kolTags" type="text" class="form-input" placeholder="美妆, 穿搭, 剧情..."></div>
-                        <div class="col-span-2"><label class="form-label">内容风格</label><input id="kolStyle" type="text" class="form-input" placeholder="例如: 搞笑剧情、高端美妆测评"></div>
-                        <div class="col-span-2"><label class="form-label">备注</label><textarea id="kolNote" class="form-input" rows="3" placeholder="填写其他合作注意事项..."></textarea></div>
-                    </div>
-                </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
-                    <button onclick="forceCloseDrawer('drawer-kol')" class="px-6 py-2.5 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">取消</button>
-                    <button onclick="saveKol()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- KOL抽屉 -->
+    <div id="drawer-kol" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-kol')"><div class="drawer" onclick="event.stopPropagation()"><div class="px-8 py-5 border-b flex justify-between bg-gray-50"><h2 class="text-xl font-bold" id="kolDrawerTitle">录入KOL</h2><i class="fa-solid fa-xmark text-2xl cursor-pointer hover:text-gray-500" onclick="forceCloseDrawer('drawer-kol')"></i></div><div class="flex-1 overflow-y-auto p-8 space-y-5"><input type="hidden" id="kolEditId"><div class="section-title">基础信息</div><div class="grid grid-cols-2 gap-5"><div><label class="form-label">昵称*</label><input id="kolName" class="form-input"></div><div><label class="form-label">平台*</label><select id="kolPlatform" class="form-input"><option>TikTok</option><option>Instagram</option><option>YouTube</option></select></div><div class="col-span-2"><label class="form-label">主页链接*</label><input id="kolUrl" class="form-input" placeholder="https://..."></div><div><label class="form-label">粉丝数*</label><input id="kolFollowers" class="form-input" placeholder="24k"></div><div><label class="form-label">国家*</label><select id="kolCountry" class="form-input"><option>土耳其 (TR)</option><option>其他</option></select></div><div><label class="form-label">语言</label><input id="kolLang" class="form-input"></div><div><label class="form-label">性别</label><select id="kolGender" class="form-input"><option>女</option><option>男</option></select></div><div><label class="form-label">属性*</label><select id="kolType" class="form-input"><option value="个人">个人</option><option value="中介">中介</option></select></div></div><div class="section-title">联系与标签</div><div class="grid grid-cols-2 gap-5"><div><label>手机</label><input id="kolPhone" class="form-input"></div><div><label>邮箱</label><input id="kolEmail" class="form-input"></div><div class="col-span-2"><label>垂类标签*</label><input id="kolTags" class="form-input" placeholder="美妆,穿搭"></div><div class="col-span-2"><label>备注</label><textarea id="kolNote" class="form-input" rows="2"></textarea></div></div></div><div class="p-6 border-t flex justify-end gap-4 bg-white"><button onclick="forceCloseDrawer('drawer-kol')" class="border px-6 py-2.5 rounded-lg">取消</button><button onclick="saveKol()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold">保存</button></div></div></div>
+  </div>
 </div>
 
-<!-- ==================== 2. 报价管理 ==================== -->
-<div id="view-quote" class="view-container">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item active" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
-    </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">报价管理</div>
-            <button onclick="openDrawer('drawer-quote')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新建报价单</button>
-        </div>
-        <div class="main-content">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[900px]">
-                    <thead><tr><th class="th-style">报价单ID</th><th class="th-style">主播 (KOL)</th><th class="th-style">平台</th><th class="th-style">合作内容</th><th class="th-style">金额</th><th class="th-style">主页链接</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="quoteTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div id="drawer-quote" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-quote')">
-            <div class="drawer" onclick="event.stopPropagation()">
-                <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800" id="quoteDrawerTitle">新建报价单</h2>
-                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700 text-xl" onclick="forceCloseDrawer('drawer-quote')"></i>
-                </div>
-                <div class="flex-1 overflow-y-auto p-8 space-y-6">
-                    <input type="hidden" id="quoteEditId">
-                    <div class="section-title mt-0">选择KOL</div>
-                    <div><label class="form-label">输入KOL昵称搜索 <span class="text-red-500">*</span></label>
-                        <input type="text" id="quoteKolSearch" class="form-input" placeholder="输入昵称搜索..." oninput="searchKolForQuote()">
-                        <div id="quoteKolSuggest" class="mt-1 text-sm text-gray-500"></div>
-                        <input type="hidden" id="quoteKolId">
-                    </div>
-                    <div><label class="form-label">平台/渠道 <span class="text-red-500">*</span></label>
-                        <select id="quotePlatformSelect" class="form-input"><option value="">-- 请先选择KOL --</option></select>
-                    </div>
-                    <div><label class="form-label">合作内容形式 <span class="text-red-500">*</span></label>
-                        <select id="quoteFormat" class="form-input"><option value="Video">Video</option><option value="Reel">Reel</option><option value="Story">Story</option><option value="Carousel">Carousel</option></select>
-                    </div>
-                    <div><label class="form-label">数量 <span class="text-red-500">*</span></label>
-                        <input type="number" id="quoteQty" class="form-input" placeholder="输入数量" value="1" min="1">
-                    </div>
-                    <div><label class="form-label">金额 (USD) <span class="text-red-500">*</span></label><input id="quoteAmount" type="number" class="form-input" placeholder="2000"></div>
-                    <div><label class="form-label">备注</label><textarea id="quoteNote" class="form-input" rows="2" placeholder="附加说明..."></textarea></div>
-                </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
-                    <button onclick="forceCloseDrawer('drawer-quote')" class="px-6 py-2.5 border border-gray-300 rounded text-sm text-gray-600 font-medium">取消</button>
-                    <button onclick="saveQuote()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- 其他视图简化，结构一致，只展示差异部分，完整功能在JS中 -->
+<div id="view-quote" class="view-container"><div class="sidebar"><div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div><div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div><div class="nav-item active" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div><div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div><div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div><div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div><div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div><div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div></div><div class="content-area"><div class="topbar"><span class="text-xl font-bold">报价管理</span><button onclick="openDrawer('drawer-quote')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg"><i class="fa-solid fa-plus"></i> 新建报价</button></div><div class="main-content"><div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full min-w-[900px]"><thead><tr><th class="th-style">ID</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容</th><th class="th-style">金额</th><th class="th-style">主页</th><th class="th-style text-right">操作</th></tr></thead><tbody id="quoteTableBody"></tbody></table></div></div><div id="drawer-quote" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-quote')"><div class="drawer" onclick="event.stopPropagation()"><div class="px-8 py-5 border-b flex justify-between bg-gray-50"><h2 class="text-xl font-bold" id="quoteDrawerTitle">新建报价</h2><i class="fa-solid fa-xmark text-2xl cursor-pointer" onclick="forceCloseDrawer('drawer-quote')"></i></div><div class="flex-1 overflow-y-auto p-8 space-y-5"><input type="hidden" id="quoteEditId"><div><label>搜索KOL*</label><input id="quoteKolSearch" class="form-input" oninput="searchKolForQuote()"><div id="quoteKolSuggest" class="text-sm mt-1"></div><input type="hidden" id="quoteKolId"></div><div><label>平台</label><select id="quotePlatformSelect" class="form-input"><option value="">-- 先选KOL --</option></select></div><div class="grid grid-cols-2 gap-4"><div><label>形式*</label><select id="quoteFormat" class="form-input"><option>Video</option><option>Reel</option></select></div><div><label>数量*</label><input id="quoteQty" type="number" value="1" class="form-input"></div></div><div><label>金额(USD)*</label><input id="quoteAmount" type="number" class="form-input"></div></div><div class="p-6 border-t flex justify-end gap-4"><button onclick="forceCloseDrawer('drawer-quote')" class="border px-6 py-2.5 rounded-lg">取消</button><button onclick="saveQuote()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg">保存</button></div></div></div></div></div>
 
-<!-- ==================== 3. 合同管理 ==================== -->
-<div id="view-contract" class="view-container">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item active" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
-    </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">合同管理</div>
-            <button onclick="openDrawer('drawer-contract')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 创建合同</button>
-        </div>
-        <div class="main-content">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1000px]">
-                    <thead><tr><th class="th-style">合同ID</th><th class="th-style">报价单ID</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">形式</th><th class="th-style">付款方式</th><th class="th-style">总金额</th><th class="th-style">合同文件</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="contractTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div id="drawer-contract" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-contract')">
-            <div class="drawer" onclick="event.stopPropagation()">
-                <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800" id="contractDrawerTitle">创建合同</h2>
-                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700 text-xl" onclick="forceCloseDrawer('drawer-contract')"></i>
-                </div>
-                <div class="flex-1 overflow-y-auto p-8">
-                    <input type="hidden" id="contractEditId">
-                    <div class="section-title mt-0">关联报价单</div>
-                    <div><label class="form-label">输入报价单ID <span class="text-red-500">*</span></label>
-                        <input type="text" id="contractQuoteSearch" class="form-input" placeholder="输入报价单ID..." oninput="searchQuoteForContract()">
-                        <div id="contractQuoteSuggest" class="mt-1 text-sm text-gray-500"></div>
-                        <input type="hidden" id="contractQuoteId">
-                    </div>
-                    <div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg grid grid-cols-2 gap-4 text-sm">
-                        <div><span class="text-indigo-400">KOL</span><div class="font-bold text-indigo-900" id="contractPreviewKol">-</div></div>
-                        <div><span class="text-indigo-400">平台</span><div class="font-bold text-indigo-900" id="contractPreviewPlatform">-</div></div>
-                        <div><span class="text-indigo-400">合作内容</span><div class="font-bold text-indigo-900" id="contractPreviewContent">-</div></div>
-                        <div><span class="text-indigo-400">金额</span><div class="font-bold text-indigo-700" id="contractPreviewAmount">$ 0</div></div>
-                    </div>
-                    <div class="section-title">合同细节</div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="col-span-2"><label class="form-label">付款方式 <span class="text-red-500">*</span></label><div class="flex gap-8 mt-3"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="pay" value="一次性" class="w-4 h-4 text-indigo-600"> 一次性</label><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="pay" value="分期" checked class="w-4 h-4 text-indigo-600"> 分期</label></div></div>
-                        <div><label class="form-label">开始日期</label><input id="contractStart" type="date" class="form-input"></div>
-                        <div><label class="form-label">结束日期</label><input id="contractEnd" type="date" class="form-input"></div>
-                    </div>
-                    <div class="section-title">上传合同 (PDF)</div>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-indigo-50 transition-colors">
-                        <input type="file" id="contractFile" accept=".pdf" class="hidden" onchange="previewContractFile(this)">
-                        <button onclick="document.getElementById('contractFile').click()" class="bg-gray-100 px-4 py-2 rounded text-sm hover:bg-gray-200"><i class="fa-solid fa-cloud-upload-alt mr-2"></i>选择PDF文件</button>
-                        <span id="contractFileName" class="ml-3 text-sm text-gray-500">未选择文件</span>
-                        <div id="contractFilePreview" class="mt-3"></div>
-                    </div>
-                </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
-                    <button onclick="forceCloseDrawer('drawer-contract')" class="px-6 py-2.5 border border-gray-300 rounded text-sm hover:bg-gray-50 font-medium">取消</button>
-                    <button onclick="saveContract()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="view-contract" class="view-container"><div class="sidebar"><div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div><div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div><div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div><div class="nav-item active" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div><div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div><div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div><div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div><div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div></div><div class="content-area"><div class="topbar"><span class="text-xl font-bold">合同管理</span><button onclick="openDrawer('drawer-contract')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg"><i class="fa-solid fa-plus"></i> 创建合同</button></div><div class="main-content"><div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full min-w-[1000px]"><thead><tr><th class="th-style">合同ID</th><th class="th-style">报价单</th><th class="th-style">KOL</th><th class="th-style">金额</th><th class="th-style">付款方式</th><th class="th-style">合同文件</th><th class="th-style text-right">操作</th></tr></thead><tbody id="contractTableBody"></tbody></table></div></div><div id="drawer-contract" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-contract')"><div class="drawer" onclick="event.stopPropagation()"><div class="px-8 py-5 border-b flex justify-between bg-gray-50"><h2 class="text-xl font-bold">创建合同</h2><i class="fa-solid fa-xmark text-2xl cursor-pointer" onclick="forceCloseDrawer('drawer-contract')"></i></div><div class="flex-1 overflow-y-auto p-8 space-y-5"><input type="hidden" id="contractEditId"><div><label>报价单ID*</label><input id="contractQuoteSearch" class="form-input" oninput="searchQuoteForContract()"><div id="contractQuoteSuggest" class="text-sm mt-1"></div><input type="hidden" id="contractQuoteId"></div><div class="bg-indigo-50 p-4 rounded-lg grid grid-cols-2 gap-3 text-sm"><div><span>KOL</span><div class="font-bold" id="contractPreviewKol">-</div></div><div><span>金额</span><div class="font-bold" id="contractPreviewAmount">$0</div></div></div><div><label>付款方式</label><div class="flex gap-6 mt-2"><label><input type="radio" name="pay" value="一次性" checked> 一次性</label><label><input type="radio" name="pay" value="分期"> 分期</label></div></div><div><label>上传合同PDF</label><input type="file" id="contractFile" accept=".pdf" onchange="previewContractFile(this)" class="form-input"><span id="contractFileName" class="text-sm ml-2"></span><div id="contractFilePreview" class="mt-2"></div></div></div><div class="p-6 border-t flex justify-end gap-4"><button onclick="forceCloseDrawer('drawer-contract')" class="border px-6 py-2.5 rounded-lg">取消</button><button onclick="saveContract()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg">保存</button></div></div></div></div></div>
 
-<!-- ==================== 4. 服务内容 ==================== -->
-<div id="view-content" class="view-container">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item active" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
-    </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">服务内容</div>
-            <div class="flex gap-3">
-                <input type="text" id="contentSearch" placeholder="搜索 合同ID / KOL名称..." class="form-input py-1.5 w-64 text-sm" oninput="renderContent()">
-            </div>
-        </div>
-        <div class="main-content pt-6">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1200px]">
-                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style">发布链接</th><th class="th-style">视频</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="contentTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div id="drawer-content" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-content')">
-            <div class="drawer" onclick="event.stopPropagation()">
-                <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800" id="contentDrawerTitle">编辑服务内容</h2>
-                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-content')"></i>
-                </div>
-                <div class="flex-1 overflow-y-auto p-8 space-y-6">
-                    <input type="hidden" id="contentEditId">
-                    <div class="section-title mt-0">关联合同 (自动生成)</div>
-                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg grid grid-cols-3 gap-4 text-sm">
-                        <div><span class="text-gray-500">KOL</span><div class="font-bold" id="contentPreviewKol">-</div></div>
-                        <div><span class="text-gray-500">平台</span><div class="font-bold" id="contentPreviewPlatform">-</div></div>
-                        <div><span class="text-gray-500">合作内容</span><div class="font-bold" id="contentPreviewFormat">-</div></div>
-                    </div>
-                    <div><label class="form-label">SPK-Code</label><input id="contentSpk" type="text" class="form-input" placeholder=""></div>
-                    <div><label class="form-label">有效期</label><input id="contentExpiry" type="date" class="form-input"></div>
-                    <div><label class="form-label">发布链接 (填写后视为已发布，用于推广明细)</label><input id="contentUrl" type="url" class="form-input" placeholder="https://..."></div>
-                    <div><label class="form-label">上传视频 (所有格式)</label>
-                        <input type="file" id="contentVideo" accept="video/*" class="form-input p-2" onchange="previewVideo(this)">
-                        <div id="contentVideoPreview" class="mt-2"></div>
-                    </div>
-                    <div class="section-title">翻译 (中文)</div>
-                    <div><label class="form-label">中文翻译</label><textarea id="contentZh" class="form-input" rows="3" placeholder="中文翻译内容..."></textarea></div>
-                </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
-                    <button onclick="forceCloseDrawer('drawer-content')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button>
-                    <button onclick="saveContent()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="view-content" class="view-container"><div class="sidebar"><div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div><div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div><div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div><div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div><div class="nav-item active" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div><div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div><div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div><div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div></div><div class="content-area"><div class="topbar"><span class="text-xl font-bold">服务内容</span><input type="text" id="contentSearch" placeholder="搜索合同ID/KOL" class="form-input w-56" oninput="renderContent()"></div><div class="main-content"><div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full min-w-[1100px]"><thead><tr><th class="th-style">内容ID</th><th class="th-style">合同</th><th class="th-style">KOL</th><th class="th-style">SPK</th><th class="th-style">发布链接</th><th class="th-style">视频</th><th class="th-style text-right">操作</th></tr></thead><tbody id="contentTableBody"></tbody></table></div></div><div id="drawer-content" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-content')"><div class="drawer" onclick="event.stopPropagation()"><div class="px-8 py-5 border-b flex justify-between bg-gray-50"><h2 class="text-xl font-bold">编辑服务内容</h2><i class="fa-solid fa-xmark text-2xl cursor-pointer" onclick="forceCloseDrawer('drawer-content')"></i></div><div class="flex-1 overflow-y-auto p-8 space-y-5"><input type="hidden" id="contentEditId"><div class="bg-gray-50 p-4 rounded-lg"><span id="contentPreviewKol" class="font-bold">-</span></div><div><label>SPK-Code</label><input id="contentSpk" class="form-input"></div><div><label>发布链接</label><input id="contentUrl" class="form-input"></div><div><label>上传视频</label><input type="file" id="contentVideo" accept="video/*" onchange="previewVideo(this)" class="form-input"><div id="contentVideoPreview" class="mt-2"></div></div><div><label>中文翻译</label><textarea id="contentZh" class="form-input" rows="2"></textarea></div></div><div class="p-6 border-t flex justify-end gap-4"><button onclick="forceCloseDrawer('drawer-content')" class="border px-6 py-2.5 rounded-lg">取消</button><button onclick="saveContent()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg">保存</button></div></div></div></div></div>
 
-<!-- ==================== 5. 付款管理 ==================== -->
-<div id="view-payment" class="view-container">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item active" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
-    </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">付款管理</div>
-            <button onclick="openDrawer('drawer-payment')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新建付款单</button>
-        </div>
-        <div class="main-content">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1200px]">
-                    <thead><tr><th class="th-style">付款单ID</th><th class="th-style">合同ID</th><th class="th-style">KOL</th><th class="th-style">金额</th><th class="th-style">状态</th><th class="th-style">Invoice</th><th class="th-style">凭证</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="paymentTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-        <div id="drawer-payment" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-payment')">
-            <div class="drawer" onclick="event.stopPropagation()">
-                <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold" id="paymentDrawerTitle">新建付款单</h2><i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-payment')"></i>
-                </div>
-                <div class="flex-1 overflow-y-auto p-8 space-y-6">
-                    <input type="hidden" id="paymentEditId">
-                    <div><label class="form-label">输入合同ID <span class="text-red-500">*</span></label>
-                        <input type="text" id="paymentContractSearch" class="form-input" placeholder="输入合同ID..." oninput="searchContractForPayment()">
-                        <div id="paymentContractSuggest" class="mt-1 text-sm text-gray-500"></div>
-                        <input type="hidden" id="paymentContractId">
-                    </div>
-                    <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-lg grid grid-cols-3 gap-4 text-sm">
-                        <div><span class="text-indigo-400">KOL</span><div class="font-bold text-indigo-900" id="paymentPreviewKol">-</div></div>
-                        <div><span class="text-indigo-400">总金额</span><div class="font-bold text-indigo-700" id="paymentPreviewAmount">$ 0</div></div>
-                        <div><span class="text-indigo-400">付款方式</span><div class="font-bold text-indigo-900" id="paymentPreviewMethod">-</div></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div><label class="form-label">本次付款金额 (USD) <span class="text-red-500">*</span></label><input id="paymentAmount" type="number" class="form-input" placeholder="0.00" oninput="validatePaymentAmount()"></div>
-                        <div><label class="form-label">付款渠道 <span class="text-red-500">*</span></label><select id="paymentChannel" class="form-input"><option value="银行电汇">银行电汇</option><option value="币安">币安</option><option value="PayPal">PayPal</option><option value="其他">其他</option></select></div>
-                        <div><label class="form-label">收款人姓名 <span class="text-red-500">*</span></label><input id="paymentBeneficiary" type="text" class="form-input" placeholder="姓名"></div>
-                        <div><label class="form-label">银行账号/IBAN <span class="text-red-500">*</span></label><input id="paymentIban" type="text" class="form-input" placeholder="TR..."></div>
-                        <div><label class="form-label">银行名称 <span class="text-red-500">*</span></label><input id="paymentBank" type="text" class="form-input" placeholder="Bank Name"></div>
-                        <div><label class="form-label">Swift Code <span class="text-red-500">*</span></label><input id="paymentSwift" type="text" class="form-input" placeholder="SWIFT..."></div>
-                        <div class="col-span-2"><label class="form-label">银行地址</label><input id="paymentBankAddr" type="text" class="form-input" placeholder="银行地址"></div>
-                        <div class="col-span-2"><label class="form-label">收款人地址</label><input id="paymentBeneficiaryAddr" type="text" class="form-input" placeholder="收款人地址"></div>
-                        <div class="col-span-2"><label class="form-label">状态 <span class="text-red-500">*</span></label><select id="paymentStatus" class="form-input"><option value="待打款">待打款</option><option value="已打款">已打款</option></select></div>
-                    </div>
-                    <div class="section-title">上传文件</div>
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-indigo-50 transition-colors">
-                            <label class="form-label">已签署Invoice (图片/PDF)</label>
-                            <input type="file" id="paymentInvoice" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewPaymentFile(this, 'invoicePreview', 'invoiceName')">
-                            <button onclick="document.getElementById('paymentInvoice').click()" class="bg-gray-100 px-3 py-1 rounded text-sm"><i class="fa-solid fa-file-invoice mr-1"></i>选择文件</button>
-                            <span id="invoiceName" class="ml-2 text-xs text-gray-500">未选择</span>
-                            <div id="invoicePreview" class="mt-2"></div>
-                        </div>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-indigo-50 transition-colors">
-                            <label class="form-label">付款凭证 (图片/PDF)</label>
-                            <input type="file" id="paymentVoucher" accept=".pdf,.jpg,.jpeg,.png" class="hidden" onchange="previewPaymentFile(this, 'voucherPreview', 'voucherName')">
-                            <button onclick="document.getElementById('paymentVoucher').click()" class="bg-gray-100 px-3 py-1 rounded text-sm"><i class="fa-solid fa-receipt mr-1"></i>选择文件</button>
-                            <span id="voucherName" class="ml-2 text-xs text-gray-500">未选择</span>
-                            <div id="voucherPreview" class="mt-2"></div>
-                        </div>
-                    </div>
-                    <div><label class="form-label">备注</label><textarea id="paymentNote" class="form-input" rows="2" placeholder="备注..."></textarea></div>
-                </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white"><button onclick="forceCloseDrawer('drawer-payment')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button><button onclick="savePayment()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button></div>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="view-payment" class="view-container"><div class="sidebar"><div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div><div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div><div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div><div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div><div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div><div class="nav-item active" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div><div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div><div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div></div><div class="content-area"><div class="topbar"><span class="text-xl font-bold">付款管理</span><button onclick="openDrawer('drawer-payment')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg"><i class="fa-solid fa-plus"></i> 新建付款</button></div><div class="main-content"><div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full min-w-[1000px]"><thead><tr><th class="th-style">付款ID</th><th class="th-style">合同</th><th class="th-style">KOL</th><th class="th-style">金额</th><th class="th-style">状态</th><th class="th-style">文件</th><th class="th-style text-right">操作</th></tr></thead><tbody id="paymentTableBody"></tbody></table></div></div><div id="drawer-payment" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-payment')"><div class="drawer" onclick="event.stopPropagation()"><div class="px-8 py-5 border-b flex justify-between bg-gray-50"><h2 class="text-xl font-bold">新建付款</h2><i class="fa-solid fa-xmark text-2xl cursor-pointer" onclick="forceCloseDrawer('drawer-payment')"></i></div><div class="flex-1 overflow-y-auto p-8 space-y-5"><input type="hidden" id="paymentEditId"><div><label>合同ID*</label><input id="paymentContractSearch" class="form-input" oninput="searchContractForPayment()"><div id="paymentContractSuggest" class="text-sm"></div><input type="hidden" id="paymentContractId"></div><div class="grid grid-cols-2 gap-4"><div><label>金额*</label><input id="paymentAmount" type="number" class="form-input"></div><div><label>状态</label><select id="paymentStatus" class="form-input"><option>待打款</option><option>已打款</option></select></div></div><div><label>上传Invoice</label><input type="file" id="paymentInvoice" accept=".pdf,.jpg,.png" onchange="previewPaymentFile(this,'invoicePreview','invoiceName')" class="form-input"><span id="invoiceName" class="text-sm"></span><div id="invoicePreview" class="mt-1"></div></div><div><label>付款凭证</label><input type="file" id="paymentVoucher" accept=".pdf,.jpg,.png" onchange="previewPaymentFile(this,'voucherPreview','voucherName')" class="form-input"><span id="voucherName" class="text-sm"></span><div id="voucherPreview" class="mt-1"></div></div></div><div class="p-6 border-t flex justify-end gap-4"><button onclick="forceCloseDrawer('drawer-payment')" class="border px-6 py-2.5 rounded-lg">取消</button><button onclick="savePayment()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg">保存</button></div></div></div></div></div>
 
-<!-- ==================== 6. 推广明细 ==================== -->
-<div id="view-promotion" class="view-container">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item active" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
-    </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">推广明细 (自动生成)</div>
-            <div></div>
-        </div>
-        <div class="main-content">
-            <div class="grid grid-cols-4 gap-6 mb-6">
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"><div class="text-xs text-gray-500 mb-2">当月已消耗金额</div><div class="text-2xl font-bold text-indigo-600" id="totalConsumed">$ 0.00</div></div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"><div class="text-xs text-gray-500 mb-2">已发布内容数</div><div class="text-2xl font-bold text-gray-800" id="totalContents">0</div></div>
-            </div>
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[800px]">
-                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">形式</th><th class="th-style">折算单价</th><th class="th-style">发布链接</th></tr></thead>
-                    <tbody id="promotionTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="view-promotion" class="view-container"><div class="sidebar"><div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div><div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div><div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div><div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div><div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div><div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div><div class="nav-item active" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div><div class="nav-item" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div></div><div class="content-area"><div class="topbar"><span class="text-xl font-bold">推广明细</span></div><div class="main-content"><div class="grid grid-cols-2 gap-5 mb-5"><div class="bg-white p-5 rounded-xl border"><span class="text-gray-500">消耗金额</span><div class="text-3xl font-bold text-indigo-600" id="totalConsumed">$0</div></div><div class="bg-white p-5 rounded-xl border"><span class="text-gray-500">已发布</span><div class="text-3xl font-bold" id="totalContents">0</div></div></div><div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full"><thead><tr><th class="th-style">内容ID</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">单价</th><th class="th-style">链接</th></tr></thead><tbody id="promotionTableBody"></tbody></table></div></div></div></div>
 
-<!-- ==================== 7. 主播素材库 ==================== -->
-<div id="view-assets" class="view-container">
-    <div class="sidebar">
-        <div class="logo"><i class="fa-solid fa-paper-plane mr-2 text-indigo-400"></i>Higo Sys</div>
-        <div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users w-5"></i>KOL资源库</div>
-        <div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar w-5"></i>报价管理</div>
-        <div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature w-5"></i>合同管理</div>
-        <div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-photo-film w-5"></i>服务内容</div>
-        <div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card w-5"></i>付款管理</div>
-        <div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-table-list w-5"></i>推广明细</div>
-        <div class="nav-item active" onclick="switchView('view-assets')"><i class="fa-solid fa-images w-5"></i>主播素材库</div>
-    </div>
-    <div class="content-area">
-        <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">主播素材库 (自动关联服务内容)</div>
-            <div></div>
-        </div>
-        <div class="main-content">
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1100px]">
-                    <thead><tr><th class="th-style w-48 text-center">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style w-64">翻译 (中文)</th><th class="th-style">发布链接</th></tr></thead>
-                    <tbody id="assetTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="view-assets" class="view-container"><div class="sidebar"><div class="logo"><i class="fa-solid fa-crown mr-2 text-amber-400"></i>Higo</div><div class="nav-item" onclick="switchView('view-kol')"><i class="fa-solid fa-users"></i>KOL资源库</div><div class="nav-item" onclick="switchView('view-quote')"><i class="fa-solid fa-file-invoice-dollar"></i>报价管理</div><div class="nav-item" onclick="switchView('view-contract')"><i class="fa-solid fa-file-signature"></i>合同管理</div><div class="nav-item" onclick="switchView('view-content')"><i class="fa-solid fa-clapperboard"></i>服务内容</div><div class="nav-item" onclick="switchView('view-payment')"><i class="fa-solid fa-credit-card"></i>付款管理</div><div class="nav-item" onclick="switchView('view-promotion')"><i class="fa-solid fa-chart-simple"></i>推广明细</div><div class="nav-item active" onclick="switchView('view-assets')"><i class="fa-solid fa-images"></i>主播素材库</div></div><div class="content-area"><div class="topbar"><span class="text-xl font-bold">主播素材库</span></div><div class="main-content"><div class="bg-white rounded-xl border overflow-x-auto"><table class="w-full min-w-[1000px]"><thead><tr><th class="th-style">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">SPK</th><th class="th-style">翻译</th><th class="th-style">链接</th></tr></thead><tbody id="assetTableBody"></tbody></table></div></div></div></div>
 
 <script>
-    // ========== 数据存储 ==========
-    let kolData = JSON.parse(localStorage.getItem('kolData')) || [];
-    let quoteData = JSON.parse(localStorage.getItem('quoteData')) || [];
-    let contractData = JSON.parse(localStorage.getItem('contractData')) || [];
-    let contentData = JSON.parse(localStorage.getItem('contentData')) || [];
-    let paymentData = JSON.parse(localStorage.getItem('paymentData')) || [];
+  (function() {
+    // 数据存储
+    let kolData = JSON.parse(localStorage.getItem('kolData') || '[]');
+    let quoteData = JSON.parse(localStorage.getItem('quoteData') || '[]');
+    let contractData = JSON.parse(localStorage.getItem('contractData') || '[]');
+    let contentData = JSON.parse(localStorage.getItem('contentData') || '[]');
+    let paymentData = JSON.parse(localStorage.getItem('paymentData') || '[]');
 
-    // ========== ID生成工具 ==========
-    function generateId(prefix) {
-        const now = new Date();
-        const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
-        let arr;
-        if (prefix === 'Q') arr = quoteData;
-        else if (prefix === 'CTR') arr = contractData;
-        else if (prefix === 'S') arr = contentData;
-        else if (prefix === 'Payment') arr = paymentData;
-        else return prefix + '_' + dateStr + '_001';
-        const dayIds = arr.filter(item => item.id.startsWith(prefix + '_' + dateStr));
-        const seq = dayIds.length + 1;
-        return prefix + '_' + dateStr + '_' + String(seq).padStart(3,'0');
+    function persist() {
+      localStorage.setItem('kolData', JSON.stringify(kolData));
+      localStorage.setItem('quoteData', JSON.stringify(quoteData));
+      localStorage.setItem('contractData', JSON.stringify(contractData));
+      localStorage.setItem('contentData', JSON.stringify(contentData));
+      localStorage.setItem('paymentData', JSON.stringify(paymentData));
+      renderAll();
     }
 
-    function generatePaymentId(contractId) {
-        const payments = paymentData.filter(p => p.contractId === contractId);
-        const seq = String(payments.length + 1).padStart(2,'0');
-        return 'Payment_' + contractId + '_' + seq;
+    function generateId(prefix, arr) {
+      const date = new Date().toISOString().slice(0,10).replace(/-/g,'');
+      const existing = arr.filter(i => i.id && i.id.startsWith(prefix+'_'+date));
+      return prefix+'_'+date+'_'+String(existing.length+1).padStart(3,'0');
     }
 
-    function saveAll() {
-        localStorage.setItem('kolData', JSON.stringify(kolData));
-        localStorage.setItem('quoteData', JSON.stringify(quoteData));
-        localStorage.setItem('contractData', JSON.stringify(contractData));
-        localStorage.setItem('contentData', JSON.stringify(contentData));
-        localStorage.setItem('paymentData', JSON.stringify(paymentData));
-        renderAll();
-    }
+    // KOL
+    window.renderKol = function() {
+      const s = (document.getElementById('kolSearch')?.value || '').toLowerCase();
+      const f = document.getElementById('kolFilter')?.value || 'all';
+      let list = kolData.filter(k => (k.name?.toLowerCase().includes(s) || (k.email||'').toLowerCase().includes(s)) && (f==='all' || k.type===f));
+      const tbody = document.getElementById('kolTableBody');
+      if(!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8" class="td-style text-center text-gray-400">暂无数据</td></tr>`; return; }
+      tbody.innerHTML = list.map(k => `<tr><td class="td-style font-semibold">${k.name}</td><td class="td-style">${k.platform}</td><td class="td-style">${k.followers}</td><td class="td-style">${k.country}</td><td class="td-style"><span class="text-xs bg-gray-100 px-2 py-1 rounded">${k.tags||''}</span></td><td class="td-style"><a href="${k.url||'#'}" target="_blank" class="text-indigo-600 underline text-sm">🔗 主页</a></td><td class="td-style"><span class="badge bg-blue-50 text-blue-700">${k.type}</span></td><td class="td-style text-right"><span class="edit-btn text-indigo-600 cursor-pointer mr-3" onclick="editKol(${k.id})"><i class="fa-solid fa-pen"></i></span><span class="delete-btn text-red-500 cursor-pointer" onclick="deleteKol(${k.id})"><i class="fa-solid fa-trash"></i></span></td></tr>`).join('');
+    };
+
+    window.editKol = function(id) {
+      const k = kolData.find(i => i.id === id); if(!k) return;
+      document.getElementById('kolEditId').value = id;
+      document.getElementById('kolDrawerTitle').textContent = '编辑KOL';
+      document.getElementById('kolName').value = k.name || '';
+      document.getElementById('kolPlatform').value = k.platform || 'TikTok';
+      document.getElementById('kolUrl').value = k.url || '';
+      document.getElementById('kolFollowers').value = k.followers || '';
+      document.getElementById('kolCountry').value = k.country || '土耳其 (TR)';
+      document.getElementById('kolType').value = k.type || '个人';
+      document.getElementById('kolTags').value = k.tags || '';
+      document.getElementById('kolEmail').value = k.email || '';
+      openDrawer('drawer-kol');
+    };
+
+    window.saveKol = function() {
+      const id = document.getElementById('kolEditId').value;
+      const name = document.getElementById('kolName').value.trim();
+      if(!name) return alert('请输入昵称');
+      const obj = {
+        id: id ? parseInt(id) : Date.now(),
+        name, platform: document.getElementById('kolPlatform').value,
+        url: document.getElementById('kolUrl').value.trim(),
+        followers: document.getElementById('kolFollowers').value.trim(),
+        country: document.getElementById('kolCountry').value,
+        type: document.getElementById('kolType').value,
+        tags: document.getElementById('kolTags').value.trim(),
+        email: document.getElementById('kolEmail').value.trim(),
+      };
+      if(id) { const idx = kolData.findIndex(k=>k.id===parseInt(id)); if(idx>-1) kolData[idx]=obj; }
+      else kolData.push(obj);
+      persist(); forceCloseDrawer('drawer-kol'); clearKolForm();
+    };
+
+    window.deleteKol = function(id) {
+      if(!confirm('删除KOL将同时移除关联的报价/合同/内容/付款，确定吗？')) return;
+      const kol = kolData.find(k=>k.id===id);
+      if(kol) {
+        const relatedQuotes = quoteData.filter(q=>q.kolId===id).map(q=>q.id);
+        quoteData = quoteData.filter(q=>q.kolId!==id);
+        contractData = contractData.filter(c=>!relatedQuotes.includes(c.quoteId));
+        contentData = contentData.filter(c=>!relatedQuotes.includes(c.contractId));
+        paymentData = paymentData.filter(p=>!relatedQuotes.includes(p.contractId));
+      }
+      kolData = kolData.filter(k=>k.id!==id);
+      persist();
+    };
+
+    // 报价
+    window.renderQuote = function() {
+      const tbody = document.getElementById('quoteTableBody');
+      if(!quoteData.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7" class="td-style text-center text-gray-400">暂无报价</td></tr>`; return; }
+      tbody.innerHTML = quoteData.map(q => {
+        const kol = kolData.find(k=>k.id===q.kolId);
+        return `<tr><td class="td-style font-mono">${q.id}</td><td class="td-style">${q.kol}</td><td class="td-style">${q.platform}</td><td class="td-style">${q.format} x${q.qty}</td><td class="td-style font-bold">$${q.amount}</td><td class="td-style">${kol?.url ? `<a href="${kol.url}" target="_blank" class="text-indigo-600">🔗</a>` : '-'}</td><td class="td-style text-right"><span class="edit-btn text-indigo-600 mr-3" onclick="editQuote('${q.id}')"><i class="fa-solid fa-pen"></i></span><span class="delete-btn text-red-500" onclick="deleteQuote('${q.id}')"><i class="fa-solid fa-trash"></i></span></td></tr>`;
+      }).join('');
+    };
+
+    window.deleteQuote = function(id) {
+      if(!confirm('⚠️ 删除报价单将同时删除关联的合同、服务内容、付款单，确定继续吗？')) return;
+      quoteData = quoteData.filter(q=>q.id!==id);
+      contractData = contractData.filter(c=>c.quoteId!==id);
+      contentData = contentData.filter(c=>c.contractId===id);
+      paymentData = paymentData.filter(p=>p.contractId===id);
+      persist();
+    };
+
+    window.saveQuote = function() {
+      const id = document.getElementById('quoteEditId').value;
+      const kolId = document.getElementById('quoteKolId').value;
+      if(!kolId) return alert('请选择KOL');
+      const obj = {
+        id: id || generateId('Q', quoteData),
+        kolId: parseInt(kolId),
+        kol: document.getElementById('quoteKolSearch').value.trim(),
+        platform: document.getElementById('quotePlatformSelect').value,
+        format: document.getElementById('quoteFormat').value,
+        qty: parseInt(document.getElementById('quoteQty').value)||1,
+        amount: parseFloat(document.getElementById('quoteAmount').value)||0
+      };
+      if(id) { const idx = quoteData.findIndex(q=>q.id===id); if(idx>-1) quoteData[idx]=obj; }
+      else quoteData.push(obj);
+      persist(); forceCloseDrawer('drawer-quote');
+    };
+
+    // 合同
+    window.saveContract = function() {
+      const quoteId = document.getElementById('contractQuoteId').value;
+      if(!quoteId) return alert('请关联报价单');
+      const quote = quoteData.find(q=>q.id===quoteId);
+      if(!quote) return alert('报价单不存在');
+      const filePreview = document.getElementById('contractFilePreview');
+      const fileData = filePreview?.dataset?.fileData || '';
+      const obj = {
+        id: document.getElementById('contractEditId').value || generateId('CTR', contractData),
+        quoteId, kol: quote.kol, platform: quote.platform, format: quote.format,
+        amount: quote.amount,
+        payMethod: document.querySelector('input[name="pay"]:checked')?.value || '一次性',
+        fileData
+      };
+      if(document.getElementById('contractEditId').value) {
+        const idx = contractData.findIndex(c=>c.id===obj.id);
+        if(idx>-1) contractData[idx]=obj;
+      } else contractData.push(obj);
+      if(!contentData.some(c=>c.contractId===obj.id)) {
+        contentData.push({ id: generateId('S',contentData), contractId: obj.id, kol: obj.kol, platform: obj.platform, format: obj.format, spk:'', url:'', zh:'', videoData:'' });
+      }
+      persist(); forceCloseDrawer('drawer-contract');
+    };
+
+    // 服务内容保存修复
+    window.saveContent = function() {
+      const id = document.getElementById('contentEditId').value;
+      const idx = contentData.findIndex(c=>c.id===id);
+      if(idx===-1) return alert('数据错误');
+      contentData[idx].spk = document.getElementById('contentSpk').value;
+      contentData[idx].url = document.getElementById('contentUrl').value;
+      contentData[idx].zh = document.getElementById('contentZh').value;
+      const videoPrev = document.getElementById('contentVideoPreview');
+      if(videoPrev?.dataset?.videoData) contentData[idx].videoData = videoPrev.dataset.videoData;
+      persist(); forceCloseDrawer('drawer-content');
+    };
+
+    // 付款保存修复
+    window.savePayment = function() {
+      const contractId = document.getElementById('paymentContractId').value;
+      if(!contractId) return alert('请关联合同');
+      const amount = parseFloat(document.getElementById('paymentAmount').value);
+      if(!amount) return alert('填写金额');
+      const invoicePrev = document.getElementById('invoicePreview');
+      const voucherPrev = document.getElementById('voucherPreview');
+      const obj = {
+        id: document.getElementById('paymentEditId').value || generateId('Payment', paymentData),
+        contractId, kol: contractData.find(c=>c.id===contractId)?.kol || '',
+        amount, status: document.getElementById('paymentStatus').value,
+        invoiceData: invoicePrev?.dataset?.fileData || '',
+        voucherData: voucherPrev?.dataset?.fileData || ''
+      };
+      if(document.getElementById('paymentEditId').value) {
+        const idx = paymentData.findIndex(p=>p.id===obj.id);
+        if(idx>-1) paymentData[idx]=obj;
+      } else paymentData.push(obj);
+      persist(); forceCloseDrawer('drawer-payment');
+    };
+
+    window.previewVideo = function(input) {
+      if(input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${e.target.result}" class="max-h-28 rounded"></video>`;
+          document.getElementById('contentVideoPreview').dataset.videoData = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.previewContractFile = function(input) {
+      if(input.files[0]) {
+        document.getElementById('contractFileName').textContent = input.files[0].name;
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('contractFilePreview').innerHTML = `<a href="${e.target.result}" target="_blank" class="file-preview-link">📄 预览PDF</a>`;
+          document.getElementById('contractFilePreview').dataset.fileData = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.previewPaymentFile = function(input, previewId, nameId) {
+      if(input.files[0]) {
+        document.getElementById(nameId).textContent = input.files[0].name;
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById(previewId).innerHTML = `<a href="${e.target.result}" target="_blank" class="file-preview-link">📎 查看</a>`;
+          document.getElementById(previewId).dataset.fileData = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+      }
+    };
+
+    window.renderContent = function() {
+      const tbody = document.getElementById('contentTableBody');
+      if(!contentData.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7" class="td-style text-center">暂无内容</td></tr>`; return; }
+      tbody.innerHTML = contentData.map(c => `<tr><td class="td-style">${c.id}</td><td class="td-style">${c.contractId}</td><td class="td-style">${c.kol}</td><td class="td-style">${c.spk||'-'}</td><td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600">🔗</a>` : '-'}</td><td class="td-style">${c.videoData ? `<video src="${c.videoData}" class="h-10 rounded"></video>` : '-'}</td><td class="td-style text-right"><span class="edit-btn text-indigo-600 mr-3" onclick="editContent('${c.id}')"><i class="fa-solid fa-pen"></i></span></td></tr>`).join('');
+    };
+
+    window.renderPayment = function() {
+      const tbody = document.getElementById('paymentTableBody');
+      if(!paymentData.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7" class="td-style text-center">暂无付款</td></tr>`; return; }
+      tbody.innerHTML = paymentData.map(p => `<tr><td class="td-style">${p.id}</td><td class="td-style">${p.contractId}</td><td class="td-style">${p.kol}</td><td class="td-style font-bold">$${p.amount}</td><td class="td-style"><span class="badge ${p.status==='已打款'?'status-active':'status-pending'}">${p.status}</span></td><td class="td-style">${p.invoiceData?`<a href="${p.invoiceData}" target="_blank" class="file-preview-link">发票</a>`:''} ${p.voucherData?`<a href="${p.voucherData}" target="_blank" class="file-preview-link">凭证</a>`:''}</td><td class="td-style text-right"><span class="edit-btn text-indigo-600 mr-3" onclick="editPayment('${p.id}')"><i class="fa-solid fa-pen"></i></span></td></tr>`).join('');
+    };
+
+    window.renderAsset = function() {
+      const tbody = document.getElementById('assetTableBody');
+      const list = contentData.filter(c=>c.videoData);
+      if(!list.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6" class="td-style text-center">暂无视频素材</td></tr>`; return; }
+      tbody.innerHTML = list.map(c => `<tr><td class="td-style"><video controls src="${c.videoData}" class="asset-video" style="max-width:260px; max-height:160px;"></video></td><td class="td-style font-bold">${c.kol}</td><td class="td-style">${c.platform}</td><td class="td-style">${c.spk||'-'}</td><td class="td-style max-w-xs">${c.zh||'-'}</td><td class="td-style">${c.url?`<a href="${c.url}" target="_blank" class="text-indigo-600">🔗</a>`:'-'}</td></tr>`).join('');
+    };
+
+    window.renderPromotion = function() {
+      const list = contentData.filter(c=>c.url);
+      document.getElementById('totalContents').textContent = list.length;
+      let total = 0;
+      document.getElementById('promotionTableBody').innerHTML = list.map(c => {
+        const contract = contractData.find(ct=>ct.id===c.contractId);
+        const price = contract?.amount || 0;
+        total += price;
+        return `<tr><td class="td-style">${c.id}</td><td class="td-style">${c.kol}</td><td class="td-style">${c.platform}</td><td class="td-style">$${price}</td><td class="td-style"><a href="${c.url}" target="_blank" class="text-indigo-600">查看</a></td></tr>`;
+      }).join('');
+      document.getElementById('totalConsumed').textContent = '$'+total.toFixed(2);
+    };
+
+    window.switchView = function(id) {
+      document.querySelectorAll('.view-container').forEach(v=>v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    };
+
+    window.openDrawer = (id) => document.getElementById(id).classList.add('show');
+    window.closeDrawer = (e,id) => { if(e.target.id===id) document.getElementById(id).classList.remove('show'); };
+    window.forceCloseDrawer = (id) => document.getElementById(id).classList.remove('show');
 
     function renderAll() { renderKol(); renderQuote(); renderContract(); renderContent(); renderPayment(); renderPromotion(); renderAsset(); }
-
-    // ========== KOL ==========
-    function renderKol() {
-        const search = document.getElementById('kolSearch').value.toLowerCase();
-        const filter = document.getElementById('kolFilter').value;
-        let list = kolData.filter(k => {
-            const matchSearch = k.name.toLowerCase().includes(search) || (k.email||'').toLowerCase().includes(search);
-            const matchFilter = filter === 'all' || k.type === filter;
-            return matchSearch && matchFilter;
-        });
-        const tbody = document.getElementById('kolTableBody');
-        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">暂无数据，点击 "录入KOL" 添加</td></tr>`; return; }
-        tbody.innerHTML = list.map(k => `
-            <tr class="hover:bg-gray-50">
-                <td class="td-style font-medium">${k.name}</td><td class="td-style">${k.platform}</td>
-                <td class="td-style font-semibold text-gray-900">${k.followers}</td>
-                <td class="td-style">${k.country}</td><td class="td-style"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">${k.tags}</span></td>
-                <td class="td-style text-gray-500">${k.email||'-'}</td>
-                <td class="td-style"><span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-100">${k.type}</span></td>
-                <td class="td-style text-right">
-                    <span class="edit-btn" onclick="editKol(${k.id})"><i class="fa-solid fa-pen"></i></span>
-                    <span class="delete-btn" onclick="deleteKol(${k.id})"><i class="fa-solid fa-trash"></i></span>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function editKol(id) {
-        const k = kolData.find(i => i.id === id);
-        if (!k) return;
-        document.getElementById('kolEditId').value = id;
-        document.getElementById('kolDrawerTitle').textContent = '编辑 KOL';
-        document.getElementById('kolName').value = k.name;
-        document.getElementById('kolPlatform').value = k.platform;
-        document.getElementById('kolUrl').value = k.url || '';
-        document.getElementById('kolFollowers').value = k.followers;
-        document.getElementById('kolCountry').value = k.country;
-        document.getElementById('kolLang').value = k.lang || '';
-        document.getElementById('kolGender').value = k.gender || '女';
-        document.getElementById('kolType').value = k.type || '个人';
-        document.getElementById('kolPhone').value = k.phone || '';
-        document.getElementById('kolEmail').value = k.email || '';
-        document.getElementById('kolTags').value = k.tags || '';
-        document.getElementById('kolStyle').value = k.style || '';
-        document.getElementById('kolNote').value = k.note || '';
-        openDrawer('drawer-kol');
-    }
-
-    function saveKol() {
-        const id = document.getElementById('kolEditId').value;
-        const name = document.getElementById('kolName').value.trim();
-        const platform = document.getElementById('kolPlatform').value;
-        const followers = document.getElementById('kolFollowers').value.trim();
-        const country = document.getElementById('kolCountry').value;
-        const tags = document.getElementById('kolTags').value.trim();
-        const type = document.getElementById('kolType').value;
-        if (!name || !platform || !followers || !country || !tags || !type) { alert('请填写所有必填项（昵称、平台、粉丝数、国家、垂类标签、属性）'); return; }
-        const obj = { id: id ? parseInt(id) : Date.now(), name, platform, url: document.getElementById('kolUrl').value.trim()||'#', followers, country, lang: document.getElementById('kolLang').value.trim(), gender: document.getElementById('kolGender').value, type, phone: document.getElementById('kolPhone').value.trim(), email: document.getElementById('kolEmail').value.trim(), tags, style: document.getElementById('kolStyle').value.trim(), note: document.getElementById('kolNote').value.trim() };
-        if (id) { const idx = kolData.findIndex(k => k.id === parseInt(id)); if (idx>-1) kolData[idx] = obj; } else { kolData.push(obj); }
-        saveAll();
-        forceCloseDrawer('drawer-kol');
-        document.getElementById('kolEditId').value = '';
-        document.getElementById('kolDrawerTitle').textContent = '录入 KOL 资源';
-        document.getElementById('kolName').value = '';
-        document.getElementById('kolFollowers').value = '';
-        document.getElementById('kolTags').value = '';
-        document.getElementById('kolEmail').value = '';
-    }
-
-    function deleteKol(id) {
-        if (!confirm('确认删除该KOL？将同时删除关联的报价单、合同、服务内容和付款单！')) return;
-        const kol = kolData.find(k => k.id === id);
-        if (!kol) return;
-        // 删除关联报价单
-        quoteData = quoteData.filter(q => q.kolId !== id);
-        // 删除关联合同（通过报价单）
-        const quoteIds = quoteData.filter(q => q.kolId === id).map(q => q.id);
-        contractData = contractData.filter(c => !quoteIds.includes(c.quoteId));
-        // 删除关联服务内容
-        contentData = contentData.filter(c => c.kol !== kol.name);
-        // 删除关联付款单
-        paymentData = paymentData.filter(p => p.kol !== kol.name);
-        kolData = kolData.filter(k => k.id !== id);
-        saveAll();
-    }
-
-    // ========== 报价 ==========
-    function searchKolForQuote() {
-        const input = document.getElementById('quoteKolSearch').value.trim();
-        const suggest = document.getElementById('quoteKolSuggest');
-        const platformSel = document.getElementById('quotePlatformSelect');
-        if (!input) { suggest.innerHTML = ''; document.getElementById('quoteKolId').value = ''; platformSel.innerHTML = '<option value="">-- 请先选择KOL --</option>'; return; }
-        const found = kolData.filter(k => k.name.toLowerCase().includes(input.toLowerCase()));
-        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该KOL，请先在资源库录入</span>'; document.getElementById('quoteKolId').value = ''; platformSel.innerHTML = '<option value="">-- 请先选择KOL --</option>'; return; }
-        suggest.innerHTML = found.map(k => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectKolForQuote(${k.id}, '${k.name}', '${k.platform}')">${k.name} (${k.platform})</span>`).join('');
-    }
-
-    function selectKolForQuote(id, name, platform) {
-        document.getElementById('quoteKolSearch').value = name;
-        document.getElementById('quoteKolId').value = id;
-        document.getElementById('quoteKolSuggest').innerHTML = `<span class="text-green-600">已选择: ${name}</span>`;
-        const sel = document.getElementById('quotePlatformSelect');
-        sel.innerHTML = `<option value="${platform}">${platform}</option>`;
-    }
-
-    function renderQuote() {
-        const tbody = document.getElementById('quoteTableBody');
-        if (quoteData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无报价，点击 "新建报价单" 添加</td></tr>`; return; }
-        tbody.innerHTML = quoteData.map(q => {
-            const kol = kolData.find(k => k.id === q.kolId);
-            return `<tr class="hover:bg-gray-50">
-                <td class="td-style font-mono text-xs">${q.id}</td><td class="td-style font-medium">${q.kol}</td>
-                <td class="td-style">${q.platform}</td><td class="td-style text-xs text-gray-600">${q.format} x${q.qty}</td>
-                <td class="td-style font-bold text-gray-900">$ ${q.amount}</td>
-                <td class="td-style">${kol && kol.url && kol.url !== '#' ? `<a href="${kol.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 主页</a>` : '-'}</td>
-                <td class="td-style text-right">
-                    <span class="edit-btn" onclick="editQuote('${q.id}')"><i class="fa-solid fa-pen"></i></span>
-                    <span class="delete-btn" onclick="deleteQuote('${q.id}')"><i class="fa-solid fa-trash"></i></span>
-                </td>
-            </tr>`;
-        }).join('');
-    }
-
-    function editQuote(id) {
-        const q = quoteData.find(i => i.id === id);
-        if (!q) return;
-        document.getElementById('quoteEditId').value = id;
-        document.getElementById('quoteDrawerTitle').textContent = '编辑报价';
-        document.getElementById('quoteKolSearch').value = q.kol;
-        document.getElementById('quoteKolId').value = q.kolId || '';
-        document.getElementById('quotePlatformSelect').innerHTML = `<option value="${q.platform}">${q.platform}</option>`;
-        document.getElementById('quoteFormat').value = q.format;
-        document.getElementById('quoteQty').value = q.qty;
-        document.getElementById('quoteAmount').value = q.amount;
-        document.getElementById('quoteNote').value = q.note||'';
-        openDrawer('drawer-quote');
-    }
-
-    function saveQuote() {
-        const id = document.getElementById('quoteEditId').value;
-        const kolId = document.getElementById('quoteKolId').value;
-        const platform = document.getElementById('quotePlatformSelect').value;
-        const format = document.getElementById('quoteFormat').value;
-        const qty = document.getElementById('quoteQty').value.trim();
-        const amount = document.getElementById('quoteAmount').value.trim();
-        if (!kolId || !platform || !format || !qty || !amount) { alert('请填写所有必填项'); return; }
-        const kol = kolData.find(k => k.id === parseInt(kolId));
-        if (!kol) { alert('请选择有效的KOL'); return; }
-        const obj = { id: id || generateId('Q'), kolId: parseInt(kolId), kol: kol.name, platform, format, qty: parseInt(qty), amount: parseFloat(amount), note: document.getElementById('quoteNote').value.trim() };
-        if (id) { const idx = quoteData.findIndex(q => q.id === id); if (idx>-1) quoteData[idx] = obj; } else { quoteData.push(obj); }
-        saveAll();
-        forceCloseDrawer('drawer-quote');
-        document.getElementById('quoteEditId').value = '';
-        document.getElementById('quoteDrawerTitle').textContent = '新建报价单';
-        document.getElementById('quoteKolSearch').value = '';
-        document.getElementById('quoteKolId').value = '';
-        document.getElementById('quoteKolSuggest').innerHTML = '';
-        document.getElementById('quotePlatformSelect').innerHTML = '<option value="">-- 请先选择KOL --</option>';
-        document.getElementById('quoteAmount').value = '';
-        document.getElementById('quoteQty').value = '1';
-    }
-
-    function deleteQuote(id) {
-        if (!confirm('确认删除该报价单？将同时删除关联的合同、服务内容和付款单！')) return;
-        const quote = quoteData.find(q => q.id === id);
-        if (!quote) return;
-        // 删除关联合同
-        contractData = contractData.filter(c => c.quoteId !== id);
-        // 删除关联服务内容
-        contentData = contentData.filter(c => c.contractId !== id);
-        // 删除关联付款单
-        paymentData = paymentData.filter(p => p.contractId !== id);
-        quoteData = quoteData.filter(q => q.id !== id);
-        saveAll();
-    }
-
-    // ========== 合同 ==========
-    function searchQuoteForContract() {
-        const input = document.getElementById('contractQuoteSearch').value.trim();
-        const suggest = document.getElementById('contractQuoteSuggest');
-        if (!input) { suggest.innerHTML = ''; document.getElementById('contractQuoteId').value = ''; clearContractPreview(); return; }
-        const found = quoteData.filter(q => q.id.toLowerCase().includes(input.toLowerCase()));
-        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该报价单</span>'; document.getElementById('contractQuoteId').value = ''; clearContractPreview(); return; }
-        suggest.innerHTML = found.map(q => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectQuoteForContract('${q.id}')">${q.id} - ${q.kol} ($${q.amount})</span>`).join('');
-    }
-
-    function selectQuoteForContract(id) {
-        const q = quoteData.find(q => q.id === id);
-        if (!q) return;
-        document.getElementById('contractQuoteSearch').value = id;
-        document.getElementById('contractQuoteId').value = id;
-        document.getElementById('contractQuoteSuggest').innerHTML = `<span class="text-green-600">已关联: ${id}</span>`;
-        document.getElementById('contractPreviewKol').textContent = q.kol;
-        document.getElementById('contractPreviewPlatform').textContent = q.platform;
-        document.getElementById('contractPreviewContent').textContent = `${q.format} x${q.qty}`;
-        document.getElementById('contractPreviewAmount').textContent = `$ ${q.amount}`;
-    }
-
-    function clearContractPreview() {
-        document.getElementById('contractPreviewKol').textContent = '-';
-        document.getElementById('contractPreviewPlatform').textContent = '-';
-        document.getElementById('contractPreviewContent').textContent = '-';
-        document.getElementById('contractPreviewAmount').textContent = '$ 0';
-    }
-
-    function renderContract() {
-        const tbody = document.getElementById('contractTableBody');
-        if (contractData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">暂无合同，点击 "创建合同" 添加</td></tr>`; return; }
-        tbody.innerHTML = contractData.map(c => `
-            <tr class="hover:bg-gray-50">
-                <td class="td-style font-bold text-gray-900">${c.id}</td><td class="td-style font-mono text-xs">${c.quoteId}</td>
-                <td class="td-style">${c.kol}</td><td class="td-style">${c.platform || '-'}</td><td class="td-style">${c.format || '-'}</td>
-                <td class="td-style">${c.payMethod}</td>
-                <td class="td-style font-bold">$ ${c.amount}</td>
-                <td class="td-style">${c.fileData ? `<a href="${c.fileData}" target="_blank" class="file-preview-link">📄 查看PDF</a>` : '-'}</td>
-                <td class="td-style text-right">
-                    <span class="edit-btn" onclick="editContract('${c.id}')"><i class="fa-solid fa-pen"></i></span>
-                    <span class="delete-btn" onclick="deleteContract('${c.id}')"><i class="fa-solid fa-trash"></i></span>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function editContract(id) {
-        const c = contractData.find(i => i.id === id);
-        if (!c) return;
-        document.getElementById('contractEditId').value = id;
-        document.getElementById('contractDrawerTitle').textContent = '编辑合同';
-        document.getElementById('contractQuoteSearch').value = c.quoteId;
-        document.getElementById('contractQuoteId').value = c.quoteId;
-        selectQuoteForContract(c.quoteId);
-        document.querySelector(`input[name="pay"][value="${c.payMethod}"]`).checked = true;
-        document.getElementById('contractStart').value = c.start||'';
-        document.getElementById('contractEnd').value = c.end||'';
-        if (c.fileData) {
-            document.getElementById('contractFileName').textContent = '已上传PDF';
-            document.getElementById('contractFilePreview').innerHTML = `<a href="${c.fileData}" target="_blank" class="file-preview-link">📄 查看当前PDF</a>`;
-            document.getElementById('contractFilePreview').dataset.fileData = c.fileData;
-        }
-        openDrawer('drawer-contract');
-    }
-
-    function previewContractFile(input) {
-        const file = input.files[0];
-        if (file) {
-            document.getElementById('contractFileName').textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const dataUrl = e.target.result;
-                document.getElementById('contractFilePreview').innerHTML = `<a href="${dataUrl}" target="_blank" class="file-preview-link">📄 查看已选PDF</a>`;
-                document.getElementById('contractFilePreview').dataset.fileData = dataUrl;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function saveContract() {
-        const id = document.getElementById('contractEditId').value;
-        const quoteId = document.getElementById('contractQuoteId').value;
-        if (!quoteId) { alert('请输入有效的报价单ID'); return; }
-        const q = quoteData.find(q => q.id === quoteId);
-        if (!q) { alert('报价单不存在'); return; }
-        const payMethod = document.querySelector('input[name="pay"]:checked')?.value || '一次性';
-        const filePreview = document.getElementById('contractFilePreview');
-        const fileData = filePreview.dataset.fileData || '';
-        const obj = { id: id || generateId('CTR'), quoteId, kol: q.kol, platform: q.platform, format: q.format, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
-        if (id) { const idx = contractData.findIndex(c => c.id === id); if (idx>-1) contractData[idx] = obj; } else { contractData.push(obj); }
-        saveAll();
-        // 自动生成服务内容
-        autoGenerateContent(obj);
-        forceCloseDrawer('drawer-contract');
-        document.getElementById('contractEditId').value = '';
-        document.getElementById('contractDrawerTitle').textContent = '创建合同';
-        document.getElementById('contractQuoteSearch').value = '';
-        document.getElementById('contractQuoteId').value = '';
-        document.getElementById('contractQuoteSuggest').innerHTML = '';
-        document.getElementById('contractFileName').textContent = '未选择文件';
-        document.getElementById('contractFilePreview').innerHTML = '';
-        document.getElementById('contractFilePreview').dataset.fileData = '';
-        document.getElementById('contractStart').value = '';
-        document.getElementById('contractEnd').value = '';
-        clearContractPreview();
-    }
-
-    function autoGenerateContent(contract) {
-        const exists = contentData.some(c => c.contractId === contract.id);
-        if (exists) return;
-        const contentId = generateId('S');
-        contentData.push({
-            id: contentId,
-            contractId: contract.id,
-            kol: contract.kol,
-            platform: contract.platform || '',
-            format: contract.format || '',
-            spk: '',
-            expiry: '',
-            url: '',
-            zh: '',
-            videoData: ''
-        });
-        saveAll();
-    }
-
-    function deleteContract(id) {
-        if (!confirm('确认删除该合同？将同时删除关联的服务内容和付款单！')) return;
-        contentData = contentData.filter(c => c.contractId !== id);
-        paymentData = paymentData.filter(p => p.contractId !== id);
-        contractData = contractData.filter(c => c.id !== id);
-        saveAll();
-    }
-
-    // ========== 服务内容 ==========
-    function renderContent() {
-        const search = document.getElementById('contentSearch').value.toLowerCase();
-        let list = contentData.filter(c => {
-            const matchContract = c.contractId.toLowerCase().includes(search);
-            const matchKol = c.kol.toLowerCase().includes(search);
-            return matchContract || matchKol;
-        });
-        const tbody = document.getElementById('contentTableBody');
-        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="10">暂无服务内容，创建合同后自动生成</td></tr>`; return; }
-        tbody.innerHTML = list.map(c => `
-            <tr class="hover:bg-gray-50">
-                <td class="td-style font-mono text-xs">${c.id}</td>
-                <td class="td-style text-xs">${c.contractId || '-'}</td>
-                <td class="td-style font-medium">${c.kol || '-'}</td>
-                <td class="td-style">${c.platform || '-'}</td>
-                <td class="td-style">${c.format || '-'}</td>
-                <td class="td-style text-xs text-gray-500">${c.spk || '-'}</td>
-                <td class="td-style text-xs">${c.expiry || '-'}</td>
-                <td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a>` : '-'}</td>
-                <td class="td-style">${c.videoData ? `<video controls src="${c.videoData}" class="max-h-12 rounded"></video>` : '-'}</td>
-                <td class="td-style text-right">
-                    <span class="edit-btn" onclick="editContent('${c.id}')"><i class="fa-solid fa-pen"></i></span>
-                    <span class="delete-btn" onclick="deleteContent('${c.id}')"><i class="fa-solid fa-trash"></i></span>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function editContent(id) {
-        const c = contentData.find(i => i.id === id);
-        if (!c) return;
-        document.getElementById('contentEditId').value = id;
-        document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
-        document.getElementById('contentPreviewKol').textContent = c.kol || '-';
-        document.getElementById('contentPreviewPlatform').textContent = c.platform || '-';
-        document.getElementById('contentPreviewFormat').textContent = c.format || '-';
-        document.getElementById('contentSpk').value = c.spk||'';
-        document.getElementById('contentExpiry').value = c.expiry||'';
-        document.getElementById('contentUrl').value = c.url||'';
-        document.getElementById('contentZh').value = c.zh||'';
-        if (c.videoData) {
-            document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${c.videoData}" class="max-h-32 rounded border"></video>`;
-            document.getElementById('contentVideoPreview').dataset.videoData = c.videoData;
-        } else {
-            document.getElementById('contentVideoPreview').innerHTML = '';
-            document.getElementById('contentVideoPreview').dataset.videoData = '';
-        }
-        openDrawer('drawer-content');
-    }
-
-    function previewVideo(input) {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${e.target.result}" class="max-h-32 rounded border"></video>`;
-                document.getElementById('contentVideoPreview').dataset.videoData = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function saveContent() {
-        const id = document.getElementById('contentEditId').value;
-        const videoPreview = document.getElementById('contentVideoPreview');
-        const idx = contentData.findIndex(c => c.id === id);
-        if (idx === -1) { alert('数据异常，请刷新后重试'); return; }
-        contentData[idx] = {
-            ...contentData[idx],
-            spk: document.getElementById('contentSpk').value.trim(),
-            expiry: document.getElementById('contentExpiry').value,
-            url: document.getElementById('contentUrl').value.trim(),
-            zh: document.getElementById('contentZh').value.trim(),
-            videoData: videoPreview.dataset.videoData || contentData[idx].videoData || ''
-        };
-        saveAll();
-        forceCloseDrawer('drawer-content');
-        document.getElementById('contentEditId').value = '';
-        document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
-        document.getElementById('contentSpk').value = '';
-        document.getElementById('contentExpiry').value = '';
-        document.getElementById('contentUrl').value = '';
-        document.getElementById('contentZh').value = '';
-        document.getElementById('contentVideoPreview').innerHTML = '';
-        document.getElementById('contentVideoPreview').dataset.videoData = '';
-    }
-
-    function deleteContent(id) { if (confirm('确认删除该服务内容？')) { contentData = contentData.filter(c => c.id !== id); saveAll(); } }
-
-    // ========== 付款 ==========
-    function searchContractForPayment() {
-        const input = document.getElementById('paymentContractSearch').value.trim();
-        const suggest = document.getElementById('paymentContractSuggest');
-        if (!input) { suggest.innerHTML = ''; document.getElementById('paymentContractId').value = ''; clearPaymentPreview(); return; }
-        const found = contractData.filter(c => c.id.toLowerCase().includes(input.toLowerCase()));
-        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该合同</span>'; document.getElementById('paymentContractId').value = ''; clearPaymentPreview(); return; }
-        suggest.innerHTML = found.map(c => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectContractForPayment('${c.id}')">${c.id} - ${c.kol} ($${c.amount})</span>`).join('');
-    }
-
-    function selectContractForPayment(id) {
-        const c = contractData.find(c => c.id === id);
-        if (!c) return;
-        document.getElementById('paymentContractSearch').value = id;
-        document.getElementById('paymentContractId').value = id;
-        document.getElementById('paymentContractSuggest').innerHTML = `<span class="text-green-600">已关联: ${id}</span>`;
-        document.getElementById('paymentPreviewKol').textContent = c.kol || '-';
-        document.getElementById('paymentPreviewAmount').textContent = `$ ${c.amount || 0}`;
-        document.getElementById('paymentPreviewMethod').textContent = c.payMethod || '-';
-        document.getElementById('paymentAmount').max = c.amount || 0;
-    }
-
-    function clearPaymentPreview() {
-        document.getElementById('paymentPreviewKol').textContent = '-';
-        document.getElementById('paymentPreviewAmount').textContent = '$ 0';
-        document.getElementById('paymentPreviewMethod').textContent = '-';
-    }
-
-    function validatePaymentAmount() {
-        const max = parseFloat(document.getElementById('paymentAmount').max) || 0;
-        const val = parseFloat(document.getElementById('paymentAmount').value) || 0;
-        if (val > max) { alert('付款金额不能超过总金额 $' + max); document.getElementById('paymentAmount').value = max; }
-    }
-
-    function renderPayment() {
-        const tbody = document.getElementById('paymentTableBody');
-        if (paymentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">暂无付款，点击 "新建付款单" 添加</td></tr>`; return; }
-        tbody.innerHTML = paymentData.map(p => `
-            <tr class="hover:bg-gray-50">
-                <td class="td-style font-mono text-xs">${p.id}</td><td class="td-style text-xs">${p.contractId||'-'}</td>
-                <td class="td-style font-medium">${p.kol}</td>
-                <td class="td-style font-bold text-indigo-600">$ ${p.amount}</td>
-                <td class="td-style"><span class="badge ${p.status === '已打款' ? 'status-active' : 'status-pending'}">${p.status}</span></td>
-                <td class="td-style">${p.invoiceData ? `<a href="${p.invoiceData}" target="_blank" class="file-preview-link">📄 查看</a>` : '-'}</td>
-                <td class="td-style">${p.voucherData ? `<a href="${p.voucherData}" target="_blank" class="file-preview-link">📄 查看</a>` : '-'}</td>
-                <td class="td-style text-right">
-                    <span class="edit-btn" onclick="editPayment('${p.id}')"><i class="fa-solid fa-pen"></i></span>
-                    <span class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fa-solid fa-trash"></i></span>
-                </td>
-            </tr>
-        `).join('');
-    }
-
-    function editPayment(id) {
-        const p = paymentData.find(i => i.id === id);
-        if (!p) return;
-        document.getElementById('paymentEditId').value = id;
-        document.getElementById('paymentDrawerTitle').textContent = '编辑付款单';
-        document.getElementById('paymentContractSearch').value = p.contractId || '';
-        document.getElementById('paymentContractId').value = p.contractId || '';
-        if (p.contractId) selectContractForPayment(p.contractId);
-        document.getElementById('paymentAmount').value = p.amount;
-        document.getElementById('paymentChannel').value = p.channel || '银行电汇';
-        document.getElementById('paymentBeneficiary').value = p.beneficiary || '';
-        document.getElementById('paymentIban').value = p.iban || '';
-        document.getElementById('paymentBank').value = p.bank || '';
-        document.getElementById('paymentSwift').value = p.swift || '';
-        document.getElementById('paymentBankAddr').value = p.bankAddr || '';
-        document.getElementById('paymentBeneficiaryAddr').value = p.beneficiaryAddr || '';
-        document.getElementById('paymentStatus').value = p.status || '待打款';
-        document.getElementById('paymentNote').value = p.note || '';
-        if (p.invoiceData) {
-            document.getElementById('invoicePreview').innerHTML = `<a href="${p.invoiceData}" target="_blank" class="file-preview-link">📄 查看Invoice</a>`;
-            document.getElementById('invoicePreview').dataset.fileData = p.invoiceData;
-        }
-        if (p.voucherData) {
-            document.getElementById('voucherPreview').innerHTML = `<a href="${p.voucherData}" target="_blank" class="file-preview-link">📄 查看凭证</a>`;
-            document.getElementById('voucherPreview').dataset.fileData = p.voucherData;
-        }
-        openDrawer('drawer-payment');
-    }
-
-    function previewPaymentFile(input, previewId, nameId) {
-        const file = input.files[0];
-        if (file) {
-            document.getElementById(nameId).textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const dataUrl = e.target.result;
-                const div = document.getElementById(previewId);
-                div.innerHTML = `<a href="${dataUrl}" target="_blank" class="file-preview-link">📄 查看文件</a>`;
-                div.dataset.fileData = dataUrl;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function savePayment() {
-        const id = document.getElementById('paymentEditId').value;
-        const contractId = document.getElementById('paymentContractId').value;
-        if (!contractId) { alert('请输入有效的合同ID'); return; }
-        const contract = contractData.find(c => c.id === contractId);
-        if (!contract) { alert('合同不存在'); return; }
-        const amount = document.getElementById('paymentAmount').value.trim();
-        const beneficiary = document.getElementById('paymentBeneficiary').value.trim();
-        const iban = document.getElementById('paymentIban').value.trim();
-        const bank = document.getElementById('paymentBank').value.trim();
-        const swift = document.getElementById('paymentSwift').value.trim();
-        if (!amount || !beneficiary || !iban || !bank || !swift) { alert('请填写所有必填项：金额、收款人、IBAN、银行、Swift'); return; }
-        if (parseFloat(amount) > parseFloat(contract.amount)) { alert('付款金额不能超过总金额 $' + contract.amount); return; }
-        const invoicePreview = document.getElementById('invoicePreview');
-        const voucherPreview = document.getElementById('voucherPreview');
-        const obj = {
-            id: id || generatePaymentId(contractId),
-            contractId,
-            kol: contract.kol,
-            amount: parseFloat(amount),
-            channel: document.getElementById('paymentChannel').value,
-            beneficiary,
-            iban,
-            bank,
-            swift,
-            bankAddr: document.getElementById('paymentBankAddr').value.trim(),
-            beneficiaryAddr: document.getElementById('paymentBeneficiaryAddr').value.trim(),
-            status: document.getElementById('paymentStatus').value,
-            note: document.getElementById('paymentNote').value.trim(),
-            invoiceData: invoicePreview.dataset.fileData || '',
-            voucherData: voucherPreview.dataset.fileData || ''
-        };
-        if (id) { const idx = paymentData.findIndex(p => p.id === id); if (idx>-1) paymentData[idx] = obj; } else { paymentData.push(obj); }
-        saveAll();
-        forceCloseDrawer('drawer-payment');
-        document.getElementById('paymentEditId').value = '';
-        document.getElementById('paymentDrawerTitle').textContent = '新建付款单';
-        document.getElementById('paymentContractSearch').value = '';
-        document.getElementById('paymentContractId').value = '';
-        document.getElementById('paymentContractSuggest').innerHTML = '';
-        document.getElementById('paymentAmount').value = '';
-        document.getElementById('paymentBeneficiary').value = '';
-        document.getElementById('paymentIban').value = '';
-        document.getElementById('paymentBank').value = '';
-        document.getElementById('paymentSwift').value = '';
-        document.getElementById('paymentBankAddr').value = '';
-        document.getElementById('paymentBeneficiaryAddr').value = '';
-        document.getElementById('invoicePreview').innerHTML = '';
-        document.getElementById('voucherPreview').innerHTML = '';
-        document.getElementById('invoiceName').textContent = '未选择';
-        document.getElementById('voucherName').textContent = '未选择';
-        clearPaymentPreview();
-    }
-
-    function deletePayment(id) { if (confirm('确认删除该付款单？')) { paymentData = paymentData.filter(p => p.id !== id); saveAll(); } }
-
-    // ========== 推广明细 ==========
-    function renderPromotion() {
-        const list = contentData.filter(c => c.url && c.url.trim() !== '');
-        const tbody = document.getElementById('promotionTableBody');
-        let total = 0;
-        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">暂无已发布内容，请在服务内容中填写发布链接</td></tr>`; } else {
-            tbody.innerHTML = list.map(c => {
-                const contract = contractData.find(ct => ct.id === c.contractId);
-                const price = contract ? contract.amount : 0;
-                total += parseFloat(price) || 0;
-                return `<tr class="hover:bg-gray-50">
-                    <td class="td-style font-mono text-xs">${c.id}</td>
-                    <td class="td-style">${c.kol || (contract?contract.kol:'-')}</td>
-                    <td class="td-style">${c.platform || (contract?contract.platform:'-')}</td>
-                    <td class="td-style">${c.format || (contract?contract.format:'-')}</td>
-                    <td class="td-style font-bold text-red-600">$ ${price}</td>
-                    <td class="td-style"><a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 查看</a></td>
-                </tr>`;
-            }).join('');
-        }
-        document.getElementById('totalConsumed').textContent = '$ ' + total.toFixed(2);
-        document.getElementById('totalContents').textContent = list.length;
-    }
-
-    // ========== 素材库 ==========
-    function renderAsset() {
-        const list = contentData.filter(c => c.videoData && c.videoData.trim() !== '');
-        const tbody = document.getElementById('assetTableBody');
-        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无视频素材，请先在服务内容中上传视频</td></tr>`; return; }
-        tbody.innerHTML = list.map(c => {
-            const contract = contractData.find(ct => ct.id === c.contractId);
-            return `<tr class="hover:bg-gray-50">
-                <td class="td-style text-center">${c.videoData ? `<video controls src="${c.videoData}" class="asset-video"></video>` : '-'}</td>
-                <td class="td-style font-bold">${c.kol || (contract?contract.kol:'-')}</td>
-                <td class="td-style">${c.platform || (contract?contract.platform:'-')}</td>
-                <td class="td-style">${c.format || (contract?contract.format:'-')}</td>
-                <td class="td-style text-xs">${c.spk || '-'}</td>
-                <td class="td-style"><span class="asset-translate">${c.zh || '-'}</span></td>
-                <td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a>` : '-'}</td>
-            </tr>`;
-        }).join('');
-    }
-
-    // ========== 导航 & 抽屉 ==========
-    function switchView(viewId) {
-        document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-        if (viewId === 'view-promotion' || viewId === 'view-assets') renderAll();
-    }
-
-    function openDrawer(id) { document.getElementById(id).classList.add('show'); }
-    function closeDrawer(e, id) { if (e.target.id === id) forceCloseDrawer(id); }
-    function forceCloseDrawer(id) { document.getElementById(id).classList.remove('show'); }
-
-    // 初始化
+    window.renderContract = function() {
+      const tbody = document.getElementById('contractTableBody');
+      if(!contractData.length) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7" class="td-style text-center">暂无合同</td></tr>`; return; }
+      tbody.innerHTML = contractData.map(c => `<tr><td class="td-style">${c.id}</td><td class="td-style">${c.quoteId}</td><td class="td-style">${c.kol}</td><td class="td-style">$${c.amount}</td><td class="td-style">${c.payMethod}</td><td class="td-style">${c.fileData ? `<a href="${c.fileData}" target="_blank" class="file-preview-link">📄 PDF</a>` : '-'}</td><td class="td-style text-right"><span class="edit-btn text-indigo-600 mr-3" onclick="editContract('${c.id}')"><i class="fa-solid fa-pen"></i></span><span class="delete-btn text-red-500" onclick="deleteContract('${c.id}')"><i class="fa-solid fa-trash"></i></span></td></tr>`).join('');
+    };
+    window.deleteContract = function(id) {
+      if(!confirm('删除合同将同时移除关联内容与付款，继续？')) return;
+      contractData = contractData.filter(c=>c.id!==id);
+      contentData = contentData.filter(c=>c.contractId!==id);
+      paymentData = paymentData.filter(p=>p.contractId!==id);
+      persist();
+    };
     renderAll();
+  })();
 </script>
 </body>
 </html>
