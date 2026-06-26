@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Higo KOL 个人管理系统 · 终极版</title>
+    <title>Higo KOL 个人管理系统 · 终极修复版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -36,15 +36,16 @@
         .section-title::before { content: ''; display: block; width: 4px; height: 14px; background: #4F46E5; border-radius: 2px; }
         .btn-primary { @apply bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm transition; }
         .btn-outline { @apply border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 transition; }
-        .btn-danger { @apply border border-red-300 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-50 transition; }
-        .badge { @apply text-xs px-2.5 py-1 rounded-full border font-medium; }
-        .status-active { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
         .delete-btn { cursor: pointer; color: #EF4444; }
         .delete-btn:hover { color: #B91C1C; }
         .edit-btn { cursor: pointer; color: #4F46E5; margin-right: 8px; }
         .edit-btn:hover { color: #3730A3; }
         .empty-row td { padding: 30px; text-align: center; color: #94A3B8; font-style: italic; }
         .file-preview { max-width: 100px; max-height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #E2E8F0; }
+        .badge { @apply text-xs px-2.5 py-1 rounded-full border font-medium; }
+        .status-active { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+        .status-pending { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+        video { max-width: 100%; max-height: 120px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -158,11 +159,11 @@
                 </div>
                 <div class="flex-1 overflow-y-auto p-8 space-y-6">
                     <input type="hidden" id="quoteEditId">
-                    <div class="section-title mt-0">选择KOL与平台</div>
-                    <div><label class="form-label">选择已录入的KOL <span class="text-red-500">*</span></label>
-                        <select id="quoteKolSelect" class="form-input" onchange="updateQuotePlatforms()">
-                            <option value="">-- 请选择 --</option>
-                        </select>
+                    <div class="section-title mt-0">选择KOL</div>
+                    <div><label class="form-label">输入KOL昵称搜索 <span class="text-red-500">*</span></label>
+                        <input type="text" id="quoteKolSearch" class="form-input" placeholder="输入昵称搜索..." oninput="searchKolForQuote()">
+                        <div id="quoteKolSuggest" class="mt-1 text-sm text-gray-500"></div>
+                        <input type="hidden" id="quoteKolId">
                     </div>
                     <div><label class="form-label">平台/渠道 <span class="text-red-500">*</span></label>
                         <select id="quotePlatformSelect" class="form-input"><option value="">-- 请先选择KOL --</option></select>
@@ -171,7 +172,7 @@
                         <select id="quoteFormat" class="form-input"><option value="Video">Video</option><option value="Reel">Reel</option><option value="Story">Story</option><option value="Carousel">Carousel</option></select>
                     </div>
                     <div><label class="form-label">数量 <span class="text-red-500">*</span></label>
-                        <select id="quoteQty" class="form-input"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+                        <input type="number" id="quoteQty" class="form-input" placeholder="输入数量" value="1" min="1">
                     </div>
                     <div><label class="form-label">金额 (USD) <span class="text-red-500">*</span></label><input id="quoteAmount" type="number" class="form-input" placeholder="2000"></div>
                     <div><label class="form-label">备注</label><textarea id="quoteNote" class="form-input" rows="2" placeholder="附加说明..."></textarea></div>
@@ -219,10 +220,10 @@
                 <div class="flex-1 overflow-y-auto p-8">
                     <input type="hidden" id="contractEditId">
                     <div class="section-title mt-0">关联报价单</div>
-                    <div><label class="form-label">选择报价单ID <span class="text-red-500">*</span></label>
-                        <select id="contractQuoteSelect" class="form-input" onchange="loadQuoteToContract()">
-                            <option value="">-- 请选择 --</option>
-                        </select>
+                    <div><label class="form-label">输入报价单ID <span class="text-red-500">*</span></label>
+                        <input type="text" id="contractQuoteSearch" class="form-input" placeholder="输入报价单ID..." oninput="searchQuoteForContract()">
+                        <div id="contractQuoteSuggest" class="mt-1 text-sm text-gray-500"></div>
+                        <input type="hidden" id="contractQuoteId">
                     </div>
                     <div class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-lg grid grid-cols-2 gap-4 text-sm">
                         <div><span class="text-indigo-400">KOL</span><div class="font-bold text-indigo-900" id="contractPreviewKol">-</div></div>
@@ -272,8 +273,8 @@
         </div>
         <div class="main-content pt-6">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1000px]">
-                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL / 平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style">发布链接</th><th class="th-style text-right">操作</th></tr></thead>
+                <table class="w-full text-left min-w-[1100px]">
+                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL / 平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style">发布链接</th><th class="th-style">视频</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="contentTableBody"></tbody>
                 </table>
             </div>
@@ -286,23 +287,26 @@
                 </div>
                 <div class="flex-1 overflow-y-auto p-8 space-y-6">
                     <input type="hidden" id="contentEditId">
-                    <div class="section-title mt-0">服务信息</div>
-                    <div><label class="form-label">选择合同 <span class="text-red-500">*</span></label>
-                        <select id="contentContractSelect" class="form-input" onchange="loadContractToContent()">
-                            <option value="">-- 请选择 --</option>
-                        </select>
+                    <div class="section-title mt-0">关联合同</div>
+                    <div><label class="form-label">输入合同ID <span class="text-red-500">*</span></label>
+                        <input type="text" id="contentContractSearch" class="form-input" placeholder="输入合同ID..." oninput="searchContractForContent()">
+                        <div id="contentContractSuggest" class="mt-1 text-sm text-gray-500"></div>
+                        <input type="hidden" id="contentContractId">
                     </div>
-                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg grid grid-cols-2 gap-4 text-sm">
+                    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg grid grid-cols-3 gap-4 text-sm">
                         <div><span class="text-gray-500">KOL</span><div class="font-bold" id="contentPreviewKol">-</div></div>
                         <div><span class="text-gray-500">平台</span><div class="font-bold" id="contentPreviewPlatform">-</div></div>
                         <div><span class="text-gray-500">合作内容</span><div class="font-bold" id="contentPreviewFormat">-</div></div>
                     </div>
-                    <div><label class="form-label">SPK-Code (非必填)</label><input id="contentSpk" type="text" class="form-input" placeholder="SPK-2026-001"></div>
-                    <div><label class="form-label">有效期 (非必填)</label><input id="contentExpiry" type="date" class="form-input"></div>
+                    <div><label class="form-label">SPK-Code</label><input id="contentSpk" type="text" class="form-input" placeholder=""></div>
+                    <div><label class="form-label">有效期</label><input id="contentExpiry" type="date" class="form-input"></div>
                     <div><label class="form-label">发布链接 (填写后视为已发布，用于推广明细)</label><input id="contentUrl" type="url" class="form-input" placeholder="https://..."></div>
-                    <div class="section-title">视频翻译 / 脚本</div>
-                    <div><label class="form-label">原文 (TR)</label><textarea id="contentTr" class="form-input" rows="3" placeholder="土耳其语原文..."></textarea></div>
-                    <div><label class="form-label">翻译 (EN)</label><textarea id="contentEn" class="form-input" rows="3" placeholder="英语翻译..."></textarea></div>
+                    <div><label class="form-label">上传视频 (所有格式)</label>
+                        <input type="file" id="contentVideo" accept="video/*" class="form-input p-2" onchange="previewVideo(this)">
+                        <div id="contentVideoPreview" class="mt-2"></div>
+                    </div>
+                    <div class="section-title">翻译 (中文)</div>
+                    <div><label class="form-label">中文翻译</label><textarea id="contentZh" class="form-input" rows="3" placeholder="中文翻译内容..."></textarea></div>
                 </div>
                 <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
                     <button onclick="forceCloseDrawer('drawer-content')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button>
@@ -332,7 +336,7 @@
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1000px]">
+                <table class="w-full text-left min-w-[1100px]">
                     <thead><tr><th class="th-style">付款单ID</th><th class="th-style">合同ID</th><th class="th-style">KOL</th><th class="th-style">金额</th><th class="th-style">状态</th><th class="th-style">Invoice</th><th class="th-style">凭证</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="paymentTableBody"></tbody>
                 </table>
@@ -345,10 +349,10 @@
                 </div>
                 <div class="flex-1 overflow-y-auto p-8 space-y-6">
                     <input type="hidden" id="paymentEditId">
-                    <div><label class="form-label">选择合同 <span class="text-red-500">*</span></label>
-                        <select id="paymentContractSelect" class="form-input" onchange="loadContractToPayment()">
-                            <option value="">-- 请选择 --</option>
-                        </select>
+                    <div><label class="form-label">输入合同ID <span class="text-red-500">*</span></label>
+                        <input type="text" id="paymentContractSearch" class="form-input" placeholder="输入合同ID..." oninput="searchContractForPayment()">
+                        <div id="paymentContractSuggest" class="mt-1 text-sm text-gray-500"></div>
+                        <input type="hidden" id="paymentContractId">
                     </div>
                     <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-lg grid grid-cols-3 gap-4 text-sm">
                         <div><span class="text-indigo-400">KOL</span><div class="font-bold text-indigo-900" id="paymentPreviewKol">-</div></div>
@@ -356,7 +360,7 @@
                         <div><span class="text-indigo-400">付款方式</span><div class="font-bold text-indigo-900" id="paymentPreviewMethod">-</div></div>
                     </div>
                     <div class="grid grid-cols-2 gap-6">
-                        <div><label class="form-label">本次付款金额 (USD) <span class="text-red-500">*</span></label><input id="paymentAmount" type="number" class="form-input" placeholder="0.00"></div>
+                        <div><label class="form-label">本次付款金额 (USD) <span class="text-red-500">*</span></label><input id="paymentAmount" type="number" class="form-input" placeholder="0.00" oninput="validatePaymentAmount()"></div>
                         <div><label class="form-label">付款渠道 <span class="text-red-500">*</span></label><select id="paymentChannel" class="form-input"><option value="银行电汇">银行电汇</option><option value="币安">币安</option><option value="PayPal">PayPal</option><option value="其他">其他</option></select></div>
                         <div><label class="form-label">收款人姓名 <span class="text-red-500">*</span></label><input id="paymentBeneficiary" type="text" class="form-input" placeholder="姓名"></div>
                         <div><label class="form-label">银行账号/IBAN <span class="text-red-500">*</span></label><input id="paymentIban" type="text" class="form-input" placeholder="TR..."></div>
@@ -442,8 +446,8 @@
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[900px]">
-                    <thead><tr><th class="th-style w-32 text-center">预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style">翻译 (EN)</th><th class="th-style">发布链接</th></tr></thead>
+                <table class="w-full text-left min-w-[1000px]">
+                    <thead><tr><th class="th-style w-32 text-center">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style">翻译 (中文)</th><th class="th-style">发布链接</th></tr></thead>
                     <tbody id="assetTableBody"></tbody>
                 </table>
             </div>
@@ -468,7 +472,7 @@
         renderAll();
     }
 
-    function renderAll() { renderKol(); renderQuote(); renderContract(); renderContent(); renderPayment(); renderPromotion(); renderAsset(); populateSelects(); }
+    function renderAll() { renderKol(); renderQuote(); renderContract(); renderContent(); renderPayment(); renderPromotion(); renderAsset(); }
 
     // ========== KOL ==========
     function renderKol() {
@@ -541,6 +545,24 @@
     function deleteKol(id) { if (confirm('确认删除？')) { kolData = kolData.filter(k => k.id !== id); saveAll(); } }
 
     // ========== 报价 ==========
+    function searchKolForQuote() {
+        const input = document.getElementById('quoteKolSearch').value.trim();
+        const suggest = document.getElementById('quoteKolSuggest');
+        const platformSel = document.getElementById('quotePlatformSelect');
+        if (!input) { suggest.innerHTML = ''; document.getElementById('quoteKolId').value = ''; platformSel.innerHTML = '<option value="">-- 请先选择KOL --</option>'; return; }
+        const found = kolData.filter(k => k.name.toLowerCase().includes(input.toLowerCase()));
+        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该KOL，请先在资源库录入</span>'; document.getElementById('quoteKolId').value = ''; platformSel.innerHTML = '<option value="">-- 请先选择KOL --</option>'; return; }
+        suggest.innerHTML = found.map(k => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectKolForQuote(${k.id}, '${k.name}', '${k.platform}')">${k.name} (${k.platform})</span>`).join('');
+    }
+
+    function selectKolForQuote(id, name, platform) {
+        document.getElementById('quoteKolSearch').value = name;
+        document.getElementById('quoteKolId').value = id;
+        document.getElementById('quoteKolSuggest').innerHTML = `<span class="text-green-600">已选择: ${name}</span>`;
+        const sel = document.getElementById('quotePlatformSelect');
+        sel.innerHTML = `<option value="${platform}">${platform}</option>`;
+    }
+
     function renderQuote() {
         const tbody = document.getElementById('quoteTableBody');
         if (quoteData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">暂无报价，点击 "新建报价单" 添加</td></tr>`; return; }
@@ -562,9 +584,9 @@
         if (!q) return;
         document.getElementById('quoteEditId').value = id;
         document.getElementById('quoteDrawerTitle').textContent = '编辑报价';
-        document.getElementById('quoteKolSelect').value = q.kolId || '';
-        updateQuotePlatforms();
-        document.getElementById('quotePlatformSelect').value = q.platform;
+        document.getElementById('quoteKolSearch').value = q.kol;
+        document.getElementById('quoteKolId').value = q.kolId || '';
+        document.getElementById('quotePlatformSelect').innerHTML = `<option value="${q.platform}">${q.platform}</option>`;
         document.getElementById('quoteFormat').value = q.format;
         document.getElementById('quoteQty').value = q.qty;
         document.getElementById('quoteAmount').value = q.amount;
@@ -572,25 +594,12 @@
         openDrawer('drawer-quote');
     }
 
-    function updateQuotePlatforms() {
-        const kolId = document.getElementById('quoteKolSelect').value;
-        const sel = document.getElementById('quotePlatformSelect');
-        sel.innerHTML = '<option value="">-- 请选择 --</option>';
-        if (kolId) {
-            const kol = kolData.find(k => k.id === parseInt(kolId));
-            if (kol) {
-                sel.innerHTML += `<option value="${kol.platform}">${kol.platform}</option>`;
-                // 如果该kol有其他平台可以扩展，这里简化
-            }
-        }
-    }
-
     function saveQuote() {
         const id = document.getElementById('quoteEditId').value;
-        const kolId = document.getElementById('quoteKolSelect').value;
+        const kolId = document.getElementById('quoteKolId').value;
         const platform = document.getElementById('quotePlatformSelect').value;
         const format = document.getElementById('quoteFormat').value;
-        const qty = document.getElementById('quoteQty').value;
+        const qty = document.getElementById('quoteQty').value.trim();
         const amount = document.getElementById('quoteAmount').value.trim();
         if (!kolId || !platform || !format || !qty || !amount) { alert('请填写所有必填项'); return; }
         const kol = kolData.find(k => k.id === parseInt(kolId));
@@ -601,14 +610,45 @@
         forceCloseDrawer('drawer-quote');
         document.getElementById('quoteEditId').value = '';
         document.getElementById('quoteDrawerTitle').textContent = '新建报价单';
-        document.getElementById('quoteKolSelect').value = '';
+        document.getElementById('quoteKolSearch').value = '';
+        document.getElementById('quoteKolId').value = '';
+        document.getElementById('quoteKolSuggest').innerHTML = '';
         document.getElementById('quotePlatformSelect').innerHTML = '<option value="">-- 请先选择KOL --</option>';
         document.getElementById('quoteAmount').value = '';
+        document.getElementById('quoteQty').value = '1';
     }
 
     function deleteQuote(id) { if (confirm('确认删除？')) { quoteData = quoteData.filter(q => q.id !== id); saveAll(); } }
 
     // ========== 合同 ==========
+    function searchQuoteForContract() {
+        const input = document.getElementById('contractQuoteSearch').value.trim();
+        const suggest = document.getElementById('contractQuoteSuggest');
+        if (!input) { suggest.innerHTML = ''; document.getElementById('contractQuoteId').value = ''; clearContractPreview(); return; }
+        const found = quoteData.filter(q => q.id.toLowerCase().includes(input.toLowerCase()));
+        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该报价单</span>'; document.getElementById('contractQuoteId').value = ''; clearContractPreview(); return; }
+        suggest.innerHTML = found.map(q => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectQuoteForContract('${q.id}')">${q.id} - ${q.kol} ($${q.amount})</span>`).join('');
+    }
+
+    function selectQuoteForContract(id) {
+        const q = quoteData.find(q => q.id === id);
+        if (!q) return;
+        document.getElementById('contractQuoteSearch').value = id;
+        document.getElementById('contractQuoteId').value = id;
+        document.getElementById('contractQuoteSuggest').innerHTML = `<span class="text-green-600">已关联: ${id}</span>`;
+        document.getElementById('contractPreviewKol').textContent = q.kol;
+        document.getElementById('contractPreviewPlatform').textContent = q.platform;
+        document.getElementById('contractPreviewContent').textContent = `${q.format} x${q.qty}`;
+        document.getElementById('contractPreviewAmount').textContent = `$ ${q.amount}`;
+    }
+
+    function clearContractPreview() {
+        document.getElementById('contractPreviewKol').textContent = '-';
+        document.getElementById('contractPreviewPlatform').textContent = '-';
+        document.getElementById('contractPreviewContent').textContent = '-';
+        document.getElementById('contractPreviewAmount').textContent = '$ 0';
+    }
+
     function renderContract() {
         const tbody = document.getElementById('contractTableBody');
         if (contractData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无合同，点击 "创建合同" 添加</td></tr>`; return; }
@@ -617,7 +657,7 @@
                 <td class="td-style font-bold text-gray-900">${c.id}</td><td class="td-style font-mono text-xs">${c.quoteId}</td>
                 <td class="td-style">${c.kol}</td><td class="td-style">${c.payMethod}</td>
                 <td class="td-style font-bold">$ ${c.amount}</td>
-                <td class="td-style">${c.fileName ? `<a href="${c.fileData}" target="_blank" class="text-indigo-600 underline text-sm">📄 查看PDF</a>` : '-'}</td>
+                <td class="td-style">${c.fileData ? `<a href="${c.fileData}" target="_blank" class="text-indigo-600 underline text-sm">📄 查看PDF</a>` : '-'}</td>
                 <td class="td-style text-right">
                     <span class="edit-btn" onclick="editContract('${c.id}')"><i class="fa-solid fa-pen"></i></span>
                     <span class="delete-btn" onclick="deleteContract('${c.id}')"><i class="fa-solid fa-trash"></i></span>
@@ -631,32 +671,17 @@
         if (!c) return;
         document.getElementById('contractEditId').value = id;
         document.getElementById('contractDrawerTitle').textContent = '编辑合同';
-        document.getElementById('contractQuoteSelect').value = c.quoteId;
-        loadQuoteToContract();
+        document.getElementById('contractQuoteSearch').value = c.quoteId;
+        document.getElementById('contractQuoteId').value = c.quoteId;
+        selectQuoteForContract(c.quoteId);
         document.querySelector(`input[name="pay"][value="${c.payMethod}"]`).checked = true;
         document.getElementById('contractStart').value = c.start||'';
         document.getElementById('contractEnd').value = c.end||'';
-        document.getElementById('contractFileName').textContent = c.fileName || '未选择文件';
         if (c.fileData) {
+            document.getElementById('contractFileName').textContent = '已上传PDF';
             document.getElementById('contractFilePreview').innerHTML = `<a href="${c.fileData}" target="_blank" class="text-indigo-600 underline">📄 查看当前PDF</a>`;
         }
         openDrawer('drawer-contract');
-    }
-
-    function loadQuoteToContract() {
-        const quoteId = document.getElementById('contractQuoteSelect').value;
-        const q = quoteData.find(q => q.id === quoteId);
-        if (q) {
-            document.getElementById('contractPreviewKol').textContent = q.kol;
-            document.getElementById('contractPreviewPlatform').textContent = q.platform;
-            document.getElementById('contractPreviewContent').textContent = `${q.format} x${q.qty}`;
-            document.getElementById('contractPreviewAmount').textContent = `$ ${q.amount}`;
-        } else {
-            document.getElementById('contractPreviewKol').textContent = '-';
-            document.getElementById('contractPreviewPlatform').textContent = '-';
-            document.getElementById('contractPreviewContent').textContent = '-';
-            document.getElementById('contractPreviewAmount').textContent = '$ 0';
-        }
     }
 
     function previewContractFile(input) {
@@ -674,49 +699,89 @@
 
     function saveContract() {
         const id = document.getElementById('contractEditId').value;
-        const quoteId = document.getElementById('contractQuoteSelect').value;
-        if (!quoteId) { alert('请选择关联的报价单'); return; }
+        const quoteId = document.getElementById('contractQuoteId').value;
+        if (!quoteId) { alert('请输入有效的报价单ID'); return; }
         const q = quoteData.find(q => q.id === quoteId);
         if (!q) { alert('报价单不存在'); return; }
         const payMethod = document.querySelector('input[name="pay"]:checked')?.value || '一次性';
         const filePreview = document.getElementById('contractFilePreview');
         const fileData = filePreview.dataset.fileData || '';
-        const fileName = document.getElementById('contractFileName').textContent;
-        const obj = { id: id || 'CTR_' + Date.now().toString(36).toUpperCase(), quoteId, kol: q.kol, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData, fileName: fileName !== '未选择文件' ? fileName : '' };
+        const obj = { id: id || 'CTR_' + Date.now().toString(36).toUpperCase(), quoteId, kol: q.kol, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
         if (id) { const idx = contractData.findIndex(c => c.id === id); if (idx>-1) contractData[idx] = obj; } else { contractData.push(obj); }
         saveAll();
         forceCloseDrawer('drawer-contract');
         document.getElementById('contractEditId').value = '';
         document.getElementById('contractDrawerTitle').textContent = '创建合同';
-        document.getElementById('contractQuoteSelect').value = '';
+        document.getElementById('contractQuoteSearch').value = '';
+        document.getElementById('contractQuoteId').value = '';
+        document.getElementById('contractQuoteSuggest').innerHTML = '';
         document.getElementById('contractFileName').textContent = '未选择文件';
         document.getElementById('contractFilePreview').innerHTML = '';
         document.getElementById('contractFilePreview').dataset.fileData = '';
         document.getElementById('contractStart').value = '';
         document.getElementById('contractEnd').value = '';
+        clearContractPreview();
     }
 
     function deleteContract(id) { if (confirm('确认删除？')) { contractData = contractData.filter(c => c.id !== id); saveAll(); } }
 
     // ========== 服务内容 ==========
+    function searchContractForContent() {
+        const input = document.getElementById('contentContractSearch').value.trim();
+        const suggest = document.getElementById('contentContractSuggest');
+        if (!input) { suggest.innerHTML = ''; document.getElementById('contentContractId').value = ''; clearContentPreview(); return; }
+        const found = contractData.filter(c => c.id.toLowerCase().includes(input.toLowerCase()));
+        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该合同</span>'; document.getElementById('contentContractId').value = ''; clearContentPreview(); return; }
+        suggest.innerHTML = found.map(c => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectContractForContent('${c.id}')">${c.id} - ${c.kol}</span>`).join('');
+    }
+
+    function selectContractForContent(id) {
+        const c = contractData.find(c => c.id === id);
+        if (!c) return;
+        document.getElementById('contentContractSearch').value = id;
+        document.getElementById('contentContractId').value = id;
+        document.getElementById('contentContractSuggest').innerHTML = `<span class="text-green-600">已关联: ${id}</span>`;
+        document.getElementById('contentPreviewKol').textContent = c.kol || '-';
+        document.getElementById('contentPreviewPlatform').textContent = c.platform || '-';
+        document.getElementById('contentPreviewFormat').textContent = c.format || '-';
+    }
+
+    function clearContentPreview() {
+        document.getElementById('contentPreviewKol').textContent = '-';
+        document.getElementById('contentPreviewPlatform').textContent = '-';
+        document.getElementById('contentPreviewFormat').textContent = '-';
+    }
+
+    function previewVideo(input) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${e.target.result}" class="max-h-32 rounded border"></video>`;
+                document.getElementById('contentVideoPreview').dataset.videoData = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     function renderContent() {
         const tbody = document.getElementById('contentTableBody');
-        if (contentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">暂无服务，点击 "新建服务" 添加</td></tr>`; return; }
-        tbody.innerHTML = contentData.map(c => {
-            const contract = contractData.find(ct => ct.id === c.contractId);
-            return `<tr class="hover:bg-gray-50">
+        if (contentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">暂无服务，点击 "新建服务" 添加</td></tr>`; return; }
+        tbody.innerHTML = contentData.map(c => `
+            <tr class="hover:bg-gray-50">
                 <td class="td-style font-mono text-xs">${c.id}</td><td class="td-style text-xs">${c.contractId || '-'}</td>
-                <td class="td-style">${c.kol || (contract ? contract.kol : '-')} / ${c.platform || (contract ? contract.platform : '-')}</td>
-                <td class="td-style">${c.format || (contract ? contract.format : '-')}</td>
+                <td class="td-style">${c.kol || '-'} / ${c.platform || '-'}</td>
+                <td class="td-style">${c.format || '-'}</td>
                 <td class="td-style text-xs text-gray-500">${c.spk || '-'}</td>
                 <td class="td-style text-xs">${c.expiry || '-'}</td>
                 <td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a>` : '-'}</td>
+                <td class="td-style">${c.videoData ? `<video controls src="${c.videoData}" class="max-h-12 rounded"></video>` : '-'}</td>
                 <td class="td-style text-right">
                     <span class="edit-btn" onclick="editContent('${c.id}')"><i class="fa-solid fa-pen"></i></span>
                     <span class="delete-btn" onclick="deleteContent('${c.id}')"><i class="fa-solid fa-trash"></i></span>
                 </td>
-            </tr>`;
-        }).join('');
+            </tr>
+        `).join('');
     }
 
     function editContent(id) {
@@ -724,52 +789,80 @@
         if (!c) return;
         document.getElementById('contentEditId').value = id;
         document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
-        document.getElementById('contentContractSelect').value = c.contractId || '';
-        loadContractToContent();
+        document.getElementById('contentContractSearch').value = c.contractId || '';
+        document.getElementById('contentContractId').value = c.contractId || '';
+        if (c.contractId) selectContractForContent(c.contractId);
         document.getElementById('contentSpk').value = c.spk||'';
         document.getElementById('contentExpiry').value = c.expiry||'';
         document.getElementById('contentUrl').value = c.url||'';
-        document.getElementById('contentTr').value = c.tr||'';
-        document.getElementById('contentEn').value = c.en||'';
-        openDrawer('drawer-content');
-    }
-
-    function loadContractToContent() {
-        const contractId = document.getElementById('contentContractSelect').value;
-        const contract = contractData.find(c => c.id === contractId);
-        if (contract) {
-            document.getElementById('contentPreviewKol').textContent = contract.kol || '-';
-            document.getElementById('contentPreviewPlatform').textContent = contract.platform || '-';
-            document.getElementById('contentPreviewFormat').textContent = contract.format || '-';
-        } else {
-            document.getElementById('contentPreviewKol').textContent = '-';
-            document.getElementById('contentPreviewPlatform').textContent = '-';
-            document.getElementById('contentPreviewFormat').textContent = '-';
+        document.getElementById('contentZh').value = c.zh||'';
+        if (c.videoData) {
+            document.getElementById('contentVideoPreview').innerHTML = `<video controls src="${c.videoData}" class="max-h-32 rounded border"></video>`;
+            document.getElementById('contentVideoPreview').dataset.videoData = c.videoData;
         }
+        openDrawer('drawer-content');
     }
 
     function saveContent() {
         const id = document.getElementById('contentEditId').value;
-        const contractId = document.getElementById('contentContractSelect').value;
-        if (!contractId) { alert('请选择关联的合同'); return; }
+        const contractId = document.getElementById('contentContractId').value;
+        if (!contractId) { alert('请输入有效的合同ID'); return; }
         const contract = contractData.find(c => c.id === contractId);
-        const obj = { id: id || 'S_' + Date.now().toString(36).toUpperCase(), contractId, kol: contract ? contract.kol : '', platform: contract ? contract.platform : '', format: contract ? contract.format : '', spk: document.getElementById('contentSpk').value.trim(), expiry: document.getElementById('contentExpiry').value, url: document.getElementById('contentUrl').value.trim(), tr: document.getElementById('contentTr').value.trim(), en: document.getElementById('contentEn').value.trim() };
+        const videoPreview = document.getElementById('contentVideoPreview');
+        const obj = { id: id || 'S_' + Date.now().toString(36).toUpperCase(), contractId, kol: contract ? contract.kol : '', platform: contract ? contract.platform : '', format: contract ? contract.format : '', spk: document.getElementById('contentSpk').value.trim(), expiry: document.getElementById('contentExpiry').value, url: document.getElementById('contentUrl').value.trim(), zh: document.getElementById('contentZh').value.trim(), videoData: videoPreview.dataset.videoData || '' };
         if (id) { const idx = contentData.findIndex(c => c.id === id); if (idx>-1) contentData[idx] = obj; } else { contentData.push(obj); }
         saveAll();
         forceCloseDrawer('drawer-content');
         document.getElementById('contentEditId').value = '';
         document.getElementById('contentDrawerTitle').textContent = '新建服务内容';
-        document.getElementById('contentContractSelect').value = '';
+        document.getElementById('contentContractSearch').value = '';
+        document.getElementById('contentContractId').value = '';
+        document.getElementById('contentContractSuggest').innerHTML = '';
         document.getElementById('contentSpk').value = '';
         document.getElementById('contentExpiry').value = '';
         document.getElementById('contentUrl').value = '';
-        document.getElementById('contentTr').value = '';
-        document.getElementById('contentEn').value = '';
+        document.getElementById('contentZh').value = '';
+        document.getElementById('contentVideoPreview').innerHTML = '';
+        document.getElementById('contentVideoPreview').dataset.videoData = '';
+        clearContentPreview();
     }
 
     function deleteContent(id) { if (confirm('确认删除？')) { contentData = contentData.filter(c => c.id !== id); saveAll(); } }
 
     // ========== 付款 ==========
+    function searchContractForPayment() {
+        const input = document.getElementById('paymentContractSearch').value.trim();
+        const suggest = document.getElementById('paymentContractSuggest');
+        if (!input) { suggest.innerHTML = ''; document.getElementById('paymentContractId').value = ''; clearPaymentPreview(); return; }
+        const found = contractData.filter(c => c.id.toLowerCase().includes(input.toLowerCase()));
+        if (found.length === 0) { suggest.innerHTML = '<span class="text-red-500">未找到该合同</span>'; document.getElementById('paymentContractId').value = ''; clearPaymentPreview(); return; }
+        suggest.innerHTML = found.map(c => `<span class="cursor-pointer text-indigo-600 hover:underline mr-3" onclick="selectContractForPayment('${c.id}')">${c.id} - ${c.kol} ($${c.amount})</span>`).join('');
+    }
+
+    function selectContractForPayment(id) {
+        const c = contractData.find(c => c.id === id);
+        if (!c) return;
+        document.getElementById('paymentContractSearch').value = id;
+        document.getElementById('paymentContractId').value = id;
+        document.getElementById('paymentContractSuggest').innerHTML = `<span class="text-green-600">已关联: ${id}</span>`;
+        document.getElementById('paymentPreviewKol').textContent = c.kol || '-';
+        document.getElementById('paymentPreviewAmount').textContent = `$ ${c.amount || 0}`;
+        document.getElementById('paymentPreviewMethod').textContent = c.payMethod || '-';
+        document.getElementById('paymentAmount').max = c.amount || 0;
+    }
+
+    function clearPaymentPreview() {
+        document.getElementById('paymentPreviewKol').textContent = '-';
+        document.getElementById('paymentPreviewAmount').textContent = '$ 0';
+        document.getElementById('paymentPreviewMethod').textContent = '-';
+    }
+
+    function validatePaymentAmount() {
+        const max = parseFloat(document.getElementById('paymentAmount').max) || 0;
+        const val = parseFloat(document.getElementById('paymentAmount').value) || 0;
+        if (val > max) { alert('付款金额不能超过总金额 $' + max); document.getElementById('paymentAmount').value = max; }
+    }
+
     function renderPayment() {
         const tbody = document.getElementById('paymentTableBody');
         if (paymentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">暂无付款，点击 "新建付款单" 添加</td></tr>`; return; }
@@ -794,8 +887,9 @@
         if (!p) return;
         document.getElementById('paymentEditId').value = id;
         document.getElementById('paymentDrawerTitle').textContent = '编辑付款单';
-        document.getElementById('paymentContractSelect').value = p.contractId || '';
-        loadContractToPayment();
+        document.getElementById('paymentContractSearch').value = p.contractId || '';
+        document.getElementById('paymentContractId').value = p.contractId || '';
+        if (p.contractId) selectContractForPayment(p.contractId);
         document.getElementById('paymentAmount').value = p.amount;
         document.getElementById('paymentChannel').value = p.channel || '银行电汇';
         document.getElementById('paymentBeneficiary').value = p.beneficiary || '';
@@ -806,23 +900,9 @@
         document.getElementById('paymentBeneficiaryAddr').value = p.beneficiaryAddr || '';
         document.getElementById('paymentStatus').value = p.status || '待打款';
         document.getElementById('paymentNote').value = p.note || '';
-        if (p.invoiceData) document.getElementById('invoicePreview').innerHTML = `<a href="${p.invoiceData}" target="_blank">📄 查看Invoice</a>`;
-        if (p.voucherData) document.getElementById('voucherPreview').innerHTML = `<a href="${p.voucherData}" target="_blank">📄 查看凭证</a>`;
+        if (p.invoiceData) document.getElementById('invoicePreview').innerHTML = `<a href="${p.invoiceData}" target="_blank" class="text-indigo-600 underline">📄 查看Invoice</a>`;
+        if (p.voucherData) document.getElementById('voucherPreview').innerHTML = `<a href="${p.voucherData}" target="_blank" class="text-indigo-600 underline">📄 查看凭证</a>`;
         openDrawer('drawer-payment');
-    }
-
-    function loadContractToPayment() {
-        const contractId = document.getElementById('paymentContractSelect').value;
-        const contract = contractData.find(c => c.id === contractId);
-        if (contract) {
-            document.getElementById('paymentPreviewKol').textContent = contract.kol || '-';
-            document.getElementById('paymentPreviewAmount').textContent = `$ ${contract.amount || 0}`;
-            document.getElementById('paymentPreviewMethod').textContent = contract.payMethod || '-';
-        } else {
-            document.getElementById('paymentPreviewKol').textContent = '-';
-            document.getElementById('paymentPreviewAmount').textContent = '$ 0';
-            document.getElementById('paymentPreviewMethod').textContent = '-';
-        }
     }
 
     function previewPaymentFile(input, previewId, nameId) {
@@ -841,8 +921,8 @@
 
     function savePayment() {
         const id = document.getElementById('paymentEditId').value;
-        const contractId = document.getElementById('paymentContractSelect').value;
-        if (!contractId) { alert('请选择关联合同'); return; }
+        const contractId = document.getElementById('paymentContractId').value;
+        if (!contractId) { alert('请输入有效的合同ID'); return; }
         const contract = contractData.find(c => c.id === contractId);
         if (!contract) { alert('合同不存在'); return; }
         const amount = document.getElementById('paymentAmount').value.trim();
@@ -851,6 +931,7 @@
         const bank = document.getElementById('paymentBank').value.trim();
         const swift = document.getElementById('paymentSwift').value.trim();
         if (!amount || !beneficiary || !iban || !bank || !swift) { alert('请填写所有必填项：金额、收款人、IBAN、银行、Swift'); return; }
+        if (parseFloat(amount) > parseFloat(contract.amount)) { alert('付款金额不能超过总金额 $' + contract.amount); return; }
         const invoicePreview = document.getElementById('invoicePreview');
         const voucherPreview = document.getElementById('voucherPreview');
         const obj = { id: id || 'PAY_' + Date.now().toString(36).toUpperCase(), contractId, kol: contract.kol, amount: parseFloat(amount), channel: document.getElementById('paymentChannel').value, beneficiary, iban, bank, swift, bankAddr: document.getElementById('paymentBankAddr').value.trim(), beneficiaryAddr: document.getElementById('paymentBeneficiaryAddr').value.trim(), status: document.getElementById('paymentStatus').value, note: document.getElementById('paymentNote').value.trim(), invoiceData: invoicePreview.dataset.fileData || '', voucherData: voucherPreview.dataset.fileData || '' };
@@ -859,7 +940,9 @@
         forceCloseDrawer('drawer-payment');
         document.getElementById('paymentEditId').value = '';
         document.getElementById('paymentDrawerTitle').textContent = '新建付款单';
-        document.getElementById('paymentContractSelect').value = '';
+        document.getElementById('paymentContractSearch').value = '';
+        document.getElementById('paymentContractId').value = '';
+        document.getElementById('paymentContractSuggest').innerHTML = '';
         document.getElementById('paymentAmount').value = '';
         document.getElementById('paymentBeneficiary').value = '';
         document.getElementById('paymentIban').value = '';
@@ -871,11 +954,12 @@
         document.getElementById('voucherPreview').innerHTML = '';
         document.getElementById('invoiceName').textContent = '未选择';
         document.getElementById('voucherName').textContent = '未选择';
+        clearPaymentPreview();
     }
 
     function deletePayment(id) { if (confirm('确认删除？')) { paymentData = paymentData.filter(p => p.id !== id); saveAll(); } }
 
-    // ========== 推广明细 (自动从content生成) ==========
+    // ========== 推广明细 ==========
     function renderPromotion() {
         const list = contentData.filter(c => c.url && c.url.trim() !== '');
         const tbody = document.getElementById('promotionTableBody');
@@ -899,54 +983,23 @@
         document.getElementById('totalContents').textContent = list.length;
     }
 
-    // ========== 素材库 (自动从content生成) ==========
+    // ========== 素材库 ==========
     function renderAsset() {
-        const list = contentData.filter(c => c.url && c.url.trim() !== '');
+        const list = contentData.filter(c => c.videoData && c.videoData.trim() !== '');
         const tbody = document.getElementById('assetTableBody');
-        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无已发布内容，请先在服务内容中填写发布链接</td></tr>`; return; }
+        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无视频素材，请先在服务内容中上传视频</td></tr>`; return; }
         tbody.innerHTML = list.map(c => {
             const contract = contractData.find(ct => ct.id === c.contractId);
             return `<tr class="hover:bg-gray-50">
-                <td class="td-style text-center"><div class="w-16 h-12 bg-gray-200 rounded overflow-hidden mx-auto border border-gray-300"><img src="https://via.placeholder.com/80x48/4F46E5/fff?text=KOL" class="w-full h-full object-cover"></div></td>
+                <td class="td-style text-center">${c.videoData ? `<video controls src="${c.videoData}" class="max-h-16 rounded border"></video>` : '-'}</td>
                 <td class="td-style font-bold">${c.kol || (contract?contract.kol:'-')}</td>
                 <td class="td-style">${c.platform || (contract?contract.platform:'-')}</td>
                 <td class="td-style">${c.format || (contract?contract.format:'-')}</td>
                 <td class="td-style text-xs">${c.spk || '-'}</td>
-                <td class="td-style text-xs">${c.en || '-'}</td>
-                <td class="td-style"><a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a></td>
+                <td class="td-style text-xs">${c.zh || '-'}</td>
+                <td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a>` : '-'}</td>
             </tr>`;
         }).join('');
-    }
-
-    // ========== 下拉填充 ==========
-    function populateSelects() {
-        // Quote KOL
-        const qs = document.getElementById('quoteKolSelect');
-        const currentVal = qs.value;
-        qs.innerHTML = '<option value="">-- 请选择 --</option>';
-        kolData.forEach(k => { qs.innerHTML += `<option value="${k.id}">${k.name} (${k.platform})</option>`; });
-        if (currentVal) qs.value = currentVal;
-
-        // Contract Quote
-        const cqs = document.getElementById('contractQuoteSelect');
-        const cqVal = cqs.value;
-        cqs.innerHTML = '<option value="">-- 请选择 --</option>';
-        quoteData.forEach(q => { cqs.innerHTML += `<option value="${q.id}">${q.id} - ${q.kol} ($${q.amount})</option>`; });
-        if (cqVal) cqs.value = cqVal;
-
-        // Content Contract
-        const ccs = document.getElementById('contentContractSelect');
-        const ccVal = ccs.value;
-        ccs.innerHTML = '<option value="">-- 请选择 --</option>';
-        contractData.forEach(c => { ccs.innerHTML += `<option value="${c.id}">${c.id} - ${c.kol} ($${c.amount})</option>`; });
-        if (ccVal) ccs.value = ccVal;
-
-        // Payment Contract
-        const pcs = document.getElementById('paymentContractSelect');
-        const pcVal = pcs.value;
-        pcs.innerHTML = '<option value="">-- 请选择 --</option>';
-        contractData.forEach(c => { pcs.innerHTML += `<option value="${c.id}">${c.id} - ${c.kol} ($${c.amount})</option>`; });
-        if (pcVal) pcs.value = pcVal;
     }
 
     // ========== 导航 & 抽屉 ==========
