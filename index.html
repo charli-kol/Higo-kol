@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Higo KOL管理系统 · 全功能版</title>
+    <title>Higo KOL 个人管理系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -24,8 +24,6 @@
         .main-content { padding: 24px; overflow-y: auto; flex: 1; }
         .th-style { padding: 12px 16px; font-size: 13px; font-weight: 600; color: #64748B; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
         .td-style { padding: 16px; font-size: 14px; color: #334155; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
-        .tab-content { display: none; }
-        .tab-content.active { display: table-row-group; }
         .drawer-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; display: none; justify-content: flex-end; opacity: 0; transition: opacity 0.3s ease; }
         .drawer-overlay.show { display: flex; opacity: 1; }
         .drawer { width: 50vw; min-width: 720px; background: #fff; height: 100%; box-shadow: -10px 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -36,14 +34,15 @@
         .form-input:disabled, .form-input[readonly] { background: #F1F5F9; color: #94A3B8; cursor: not-allowed; }
         .section-title { font-size: 15px; font-weight: 700; color: #1E293B; margin: 28px 0 16px 0; display: flex; align-items: center; gap: 8px; }
         .section-title::before { content: ''; display: block; width: 4px; height: 14px; background: #4F46E5; border-radius: 2px; }
-        .media-card:hover .media-overlay { opacity: 1; }
-        .badge { @apply text-xs px-2.5 py-1 rounded-full border font-medium; }
         .btn-primary { @apply bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm transition; }
         .btn-outline { @apply border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-50 transition; }
+        .btn-danger { @apply border border-red-300 text-red-600 px-3 py-1 rounded text-sm hover:bg-red-50 transition; }
+        .badge { @apply text-xs px-2.5 py-1 rounded-full border font-medium; }
         .status-draft { background: #F1F5F9; color: #475569; border-color: #CBD5E1; }
-        .status-pending { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
-        .status-approved { background: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
-        .status-paid { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+        .status-active { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+        .delete-btn { cursor: pointer; color: #EF4444; }
+        .delete-btn:hover { color: #B91C1C; }
+        .empty-row td { padding: 30px; text-align: center; color: #94A3B8; font-style: italic; }
     </style>
 </head>
 <body>
@@ -69,28 +68,19 @@
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-0 overflow-hidden">
                 <div class="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3 bg-gray-50">
                     <div class="flex flex-wrap gap-3">
-                        <input type="text" placeholder="搜索 昵称/邮箱..." class="form-input w-64 py-1.5">
-                        <select class="form-input w-32 py-1.5"><option>所有属性</option><option>个人</option><option>中介</option></select>
+                        <input type="text" id="kolSearch" placeholder="搜索 昵称/邮箱..." class="form-input w-64 py-1.5" oninput="renderKol()">
+                        <select id="kolFilter" class="form-input w-32 py-1.5" onchange="renderKol()">
+                            <option value="all">所有属性</option>
+                            <option value="个人">个人</option>
+                            <option value="中介">中介</option>
+                        </select>
                     </div>
                     <button onclick="openDrawer('drawer-kol')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 录入KOL</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left min-w-[900px]">
                         <thead><tr><th class="th-style">KOL昵称</th><th class="th-style">平台/渠道</th><th class="th-style">粉丝数</th><th class="th-style">国家/地区</th><th class="th-style">垂类标签</th><th class="th-style">邮箱</th><th class="th-style">属性</th><th class="th-style text-right">操作</th></tr></thead>
-                        <tbody>
-                            <tr class="hover:bg-gray-50">
-                                <td class="td-style font-medium">Eda Yıldız</td><td class="td-style">TikTok</td><td class="td-style font-semibold text-gray-900">1.2M</td>
-                                <td class="td-style">土耳其 (TR)</td><td class="td-style"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">美妆</span></td>
-                                <td class="td-style text-gray-500">eda.y@gmail.com</td><td class="td-style"><span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-100">个人</span></td>
-                                <td class="td-style text-right text-indigo-600 text-sm cursor-pointer hover:underline">编辑</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="td-style font-medium">Can Yaman Gamers</td><td class="td-style">Instagram</td><td class="td-style font-semibold text-gray-900">850K</td>
-                                <td class="td-style">土耳其 (TR)</td><td class="td-style"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">游戏</span></td>
-                                <td class="td-style text-gray-500">contact@cangaming.net</td><td class="td-style"><span class="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded border border-purple-100">中介</span></td>
-                                <td class="td-style text-right text-indigo-600 text-sm cursor-pointer hover:underline">编辑</td>
-                            </tr>
-                        </tbody>
+                        <tbody id="kolTableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -105,26 +95,26 @@
                 <div class="flex-1 overflow-y-auto p-8">
                     <div class="section-title mt-0">基础信息</div>
                     <div class="grid grid-cols-2 gap-6">
-                        <div><label class="form-label">KOL昵称 <span class="text-red-500">*</span></label><input type="text" class="form-input" placeholder="输入平台昵称"></div>
-                        <div><label class="form-label">平台/渠道 <span class="text-red-500">*</span></label><select class="form-input"><option>TikTok</option><option>Instagram</option><option>YouTube</option></select></div>
-                        <div class="col-span-2"><label class="form-label">主页链接 (URL) <span class="text-red-500">*</span></label><input type="url" class="form-input" placeholder="https://..."></div>
-                        <div><label class="form-label">粉丝数 <span class="text-red-500">*</span></label><input type="number" class="form-input" placeholder="例如: 1200000"></div>
-                        <div><label class="form-label">国家/地区 <span class="text-red-500">*</span></label><select class="form-input"><option>土耳其 (TR)</option><option>其他</option></select></div>
-                        <div><label class="form-label">语言 (多选) <span class="text-red-500">*</span></label><input type="text" class="form-input" placeholder="土耳其语, 英语"></div>
-                        <div><label class="form-label">性别 <span class="text-red-500">*</span></label><select class="form-input"><option>女</option><option>男</option><option>其他</option></select></div>
+                        <div><label class="form-label">KOL昵称 <span class="text-red-500">*</span></label><input id="kolName" type="text" class="form-input" placeholder="输入平台昵称"></div>
+                        <div><label class="form-label">平台/渠道 <span class="text-red-500">*</span></label><select id="kolPlatform" class="form-input"><option>TikTok</option><option>Instagram</option><option>YouTube</option></select></div>
+                        <div class="col-span-2"><label class="form-label">主页链接 (URL) <span class="text-red-500">*</span></label><input id="kolUrl" type="url" class="form-input" placeholder="https://..."></div>
+                        <div><label class="form-label">粉丝数 <span class="text-red-500">*</span></label><input id="kolFollowers" type="text" class="form-input" placeholder="例如: 24k, 1.2M"></div>
+                        <div><label class="form-label">国家/地区 <span class="text-red-500">*</span></label><select id="kolCountry" class="form-input"><option>土耳其 (TR)</option><option>其他</option></select></div>
+                        <div><label class="form-label">语言 (多选)</label><input id="kolLang" type="text" class="form-input" placeholder="土耳其语, 英语"></div>
+                        <div><label class="form-label">性别</label><select id="kolGender" class="form-input"><option>女</option><option>男</option><option>其他</option></select></div>
                     </div>
                     <div class="section-title">联系与标签</div>
                     <div class="grid grid-cols-2 gap-6">
-                        <div><label class="form-label">手机号 <span class="text-red-500">*</span></label><input type="text" class="form-input" placeholder="+90 ..."></div>
-                        <div><label class="form-label">邮箱 <span class="text-red-500">*</span></label><input type="email" class="form-input" placeholder="example@mail.com"></div>
-                        <div class="col-span-2"><label class="form-label">垂类标签 (多选) <span class="text-red-500">*</span></label><input type="text" class="form-input" placeholder="美妆, 穿搭, 剧情..."></div>
-                        <div class="col-span-2"><label class="form-label">内容风格</label><input type="text" class="form-input" placeholder="例如: 搞笑剧情、高端美妆测评"></div>
-                        <div class="col-span-2"><label class="form-label">备注</label><textarea class="form-input" rows="3" placeholder="填写其他合作注意事项..."></textarea></div>
+                        <div><label class="form-label">手机号</label><input id="kolPhone" type="text" class="form-input" placeholder="+90 ..."></div>
+                        <div><label class="form-label">邮箱</label><input id="kolEmail" type="email" class="form-input" placeholder="example@mail.com"></div>
+                        <div class="col-span-2"><label class="form-label">垂类标签 (自由编辑) <span class="text-red-500">*</span></label><input id="kolTags" type="text" class="form-input" placeholder="美妆, 穿搭, 剧情..."></div>
+                        <div class="col-span-2"><label class="form-label">内容风格</label><input id="kolStyle" type="text" class="form-input" placeholder="例如: 搞笑剧情、高端美妆测评"></div>
+                        <div class="col-span-2"><label class="form-label">备注</label><textarea id="kolNote" class="form-input" rows="3" placeholder="填写其他合作注意事项..."></textarea></div>
                     </div>
                 </div>
                 <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
                     <button onclick="forceCloseDrawer('drawer-kol')" class="px-6 py-2.5 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">取消</button>
-                    <button onclick="forceCloseDrawer('drawer-kol')" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存录入</button>
+                    <button onclick="saveKol()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button>
                 </div>
             </div>
         </div>
@@ -145,45 +135,17 @@
     </div>
     <div class="content-area">
         <div class="topbar">
-            <div class="flex gap-6 mt-4">
-                <div class="border-b-2 border-indigo-600 pb-3 text-sm font-bold text-indigo-600 cursor-pointer" onclick="switchDataTab(this, 'quote-creator', 'quote-group')">录入人员视角：我创建的</div>
-                <div class="border-b-2 border-transparent pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 cursor-pointer" onclick="switchDataTab(this, 'quote-manager', 'quote-group')">审核主管视角：待审批 (1)</div>
-            </div>
+            <div class="text-lg font-bold text-gray-800">报价管理</div>
             <button onclick="openDrawer('drawer-quote')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新建报价单</button>
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1000px]">
-                    <thead><tr><th class="th-style">报价单ID</th><th class="th-style">主播 (KOL)</th><th class="th-style">推广产品</th><th class="th-style">平台</th><th class="th-style">合作内容</th><th class="th-style">金额</th><th class="th-style">报价日期</th><th class="th-style">状态</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="quote-creator" class="tab-content quote-group active">
-                        <tr class="hover:bg-gray-50">
-                            <td class="td-style text-gray-900 font-mono text-xs">Q_20260625_001</td><td class="td-style font-medium">Eda Yıldız</td>
-                            <td class="td-style text-gray-500">Higo</td><td class="td-style">TikTok</td>
-                            <td class="td-style text-xs text-gray-600">1 Video + 4 Comments</td><td class="td-style font-bold text-gray-900">$ 2,000.00</td>
-                            <td class="td-style text-gray-500 text-sm">2026-06-25</td><td class="td-style"><span class="badge status-draft">草稿</span></td>
-                            <td class="td-style text-right"><button class="text-indigo-600 text-sm hover:underline mr-3">编辑</button><button class="text-green-600 text-sm hover:underline">提交审核</button></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50">
-                            <td class="td-style text-gray-900 font-mono text-xs">Q_20260624_015</td><td class="td-style font-medium">Can Yaman Gamers</td>
-                            <td class="td-style text-gray-500">Higo</td><td class="td-style">Instagram</td>
-                            <td class="td-style text-xs text-gray-600">1 Reel + 2 Story</td><td class="td-style font-bold text-gray-900">$ 1,500.00</td>
-                            <td class="td-style text-gray-500 text-sm">2026-06-24</td><td class="td-style"><span class="badge status-pending">待审核</span></td>
-                            <td class="td-style text-right"><button class="text-gray-500 text-sm hover:text-gray-800">仅查看</button></td>
-                        </tr>
-                    </tbody>
-                    <tbody id="quote-manager" class="tab-content quote-group">
-                        <tr class="hover:bg-orange-50 bg-orange-50/20">
-                            <td class="td-style text-gray-900 font-mono text-xs">Q_20260624_015</td><td class="td-style font-medium">Can Yaman Gamers</td>
-                            <td class="td-style text-gray-500">Higo</td><td class="td-style">Instagram</td>
-                            <td class="td-style text-xs text-gray-600">1 Reel + 2 Story</td><td class="td-style font-bold text-gray-900">$ 1,500.00</td>
-                            <td class="td-style text-gray-500 text-sm">2026-06-24</td><td class="td-style"><span class="badge status-pending font-bold">待您审批</span></td>
-                            <td class="td-style text-right"><button class="bg-indigo-50 border border-indigo-200 px-3 py-1 rounded text-sm hover:bg-indigo-100 text-indigo-600">去审批</button></td>
-                        </tr>
-                    </tbody>
+                <table class="w-full text-left min-w-[800px]">
+                    <thead><tr><th class="th-style">报价单ID</th><th class="th-style">主播 (KOL)</th><th class="th-style">推广产品</th><th class="th-style">平台</th><th class="th-style">合作内容</th><th class="th-style">金额</th><th class="th-style text-right">操作</th></tr></thead>
+                    <tbody id="quoteTableBody"></tbody>
                 </table>
             </div>
         </div>
-        <!-- Drawer Quote -->
         <div id="drawer-quote" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-quote')">
             <div class="drawer" onclick="event.stopPropagation()">
                 <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
@@ -192,25 +154,16 @@
                 </div>
                 <div class="flex-1 overflow-y-auto p-8 space-y-6">
                     <div class="section-title mt-0">主表信息</div>
-                    <div><label class="form-label">关联产品</label><input type="text" value="Higo" disabled class="form-input"></div>
-                    <div><label class="form-label">搜索主播 (KOL) <span class="text-red-500">*</span></label><input type="text" placeholder="输入已录入的KOL昵称..." class="form-input"></div>
-                    <div><label class="form-label">备注说明</label><textarea class="form-input" rows="3" placeholder="附加说明..."></textarea></div>
-                    <div class="section-title">报价明细 (子表)</div>
-                    <div class="p-6 bg-gray-50 border border-gray-200 rounded">
-                        <div class="flex items-center justify-between mb-4"><span class="font-medium text-gray-800">平台与数量</span><span class="text-xs text-gray-400">规则: 1 Video=4 Comments</span></div>
-                        <div class="flex gap-4 mb-3">
-                            <select class="form-input w-1/3"><option>TikTok</option><option>Instagram</option></select>
-                            <input type="number" placeholder="Video/Reel数" class="form-input w-1/3">
-                            <input type="number" placeholder="Cmt/Story数" class="form-input w-1/3">
-                        </div>
-                        <input type="text" placeholder="明细金额 (USD)" class="form-input mt-2">
-                        <button class="text-indigo-600 text-sm mt-4 hover:underline font-medium"><i class="fa-solid fa-plus"></i> 添加下一条明细</button>
-                    </div>
-                    <div><label class="form-label">报价总金额 (自动计算)</label><input type="text" value="$ 0.00" disabled class="w-full border border-transparent bg-indigo-50 text-indigo-700 font-bold rounded px-4 py-3 text-xl"></div>
+                    <div><label class="form-label">关联产品</label><input id="quoteProduct" type="text" class="form-input" value="Higo"></div>
+                    <div><label class="form-label">主播 (KOL) <span class="text-red-500">*</span></label><input id="quoteKol" type="text" placeholder="输入KOL昵称..." class="form-input"></div>
+                    <div><label class="form-label">平台</label><input id="quotePlatform" type="text" class="form-input" placeholder="TikTok / IG"></div>
+                    <div><label class="form-label">合作内容</label><input id="quoteContent" type="text" class="form-input" placeholder="1 Video + 4 Comments"></div>
+                    <div><label class="form-label">金额 (USD)</label><input id="quoteAmount" type="number" class="form-input" placeholder="2000"></div>
+                    <div><label class="form-label">备注</label><textarea id="quoteNote" class="form-input" rows="3" placeholder="附加说明..."></textarea></div>
                 </div>
                 <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
                     <button onclick="forceCloseDrawer('drawer-quote')" class="px-6 py-2.5 border border-gray-300 rounded text-sm text-gray-600 font-medium">取消</button>
-                    <button onclick="forceCloseDrawer('drawer-quote')" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium">保存草稿</button>
+                    <button onclick="saveQuote()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium">保存</button>
                 </div>
             </div>
         </div>
@@ -231,30 +184,17 @@
     </div>
     <div class="content-area">
         <div class="topbar">
-            <div class="flex gap-6 mt-4">
-                <div class="border-b-2 border-indigo-600 pb-3 text-sm font-bold text-indigo-600 cursor-pointer" onclick="switchDataTab(this, 'contract-all', 'contract-group')">全部合同</div>
-                <div class="border-b-2 border-transparent pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 cursor-pointer" onclick="switchDataTab(this, 'contract-pending', 'contract-group')">待处理 (1)</div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="relative"><i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i><input type="text" placeholder="搜索 合同ID..." class="form-input pl-9 py-1.5 w-64 text-sm"></div>
-                <button onclick="openDrawer('drawer-contract')" class="bg-indigo-600 text-white px-4 py-1.5 rounded text-sm font-medium shadow-sm hover:bg-indigo-700"><i class="fa-solid fa-plus mr-1"></i> 创建合同</button>
-            </div>
+            <div class="text-lg font-bold text-gray-800">合同管理</div>
+            <button onclick="openDrawer('drawer-contract')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 创建合同</button>
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[800px]">
-                    <thead><tr><th class="th-style text-indigo-700">合同ID</th><th class="th-style text-gray-500">报价单ID</th><th class="th-style">付款方式</th><th class="th-style">总金额</th><th class="th-style">状态</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="contract-all" class="tab-content contract-group active">
-                        <tr class="hover:bg-gray-50"><td class="td-style font-bold text-gray-900">CTR_20260625_001</td><td class="td-style font-mono text-xs">Q_20260625_001</td><td class="td-style">分期</td><td class="td-style font-bold">$ 3,500.00</td><td class="td-style"><span class="badge status-pending">待上传Word</span></td><td class="td-style text-right text-indigo-600 text-sm cursor-pointer hover:underline">上传Word</td></tr>
-                        <tr class="hover:bg-gray-50"><td class="td-style font-bold text-gray-900">CTR_20260620_015</td><td class="td-style font-mono text-xs">Q_20260618_022</td><td class="td-style">一次性</td><td class="td-style font-bold">$ 800.00</td><td class="td-style"><span class="badge status-approved">已发送(待签)</span></td><td class="td-style text-right text-gray-500 text-sm cursor-pointer hover:underline">查看</td></tr>
-                    </tbody>
-                    <tbody id="contract-pending" class="tab-content contract-group">
-                        <tr class="hover:bg-yellow-50 bg-yellow-50/20"><td class="td-style font-bold text-gray-900">CTR_20260625_001</td><td class="td-style font-mono text-xs">Q_20260625_001</td><td class="td-style">分期</td><td class="td-style font-bold">$ 3,500.00</td><td class="td-style"><span class="badge status-pending font-bold">待上传Word</span></td><td class="td-style text-right text-indigo-600 text-sm font-bold cursor-pointer hover:underline"><i class="fa-solid fa-cloud-arrow-up"></i> 去上传</td></tr>
-                    </tbody>
+                <table class="w-full text-left min-w-[700px]">
+                    <thead><tr><th class="th-style">合同ID</th><th class="th-style">报价单ID</th><th class="th-style">付款方式</th><th class="th-style">总金额</th><th class="th-style">状态</th><th class="th-style text-right">操作</th></tr></thead>
+                    <tbody id="contractTableBody"></tbody>
                 </table>
             </div>
         </div>
-        <!-- Drawer Contract -->
         <div id="drawer-contract" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-contract')">
             <div class="drawer" onclick="event.stopPropagation()">
                 <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
@@ -262,29 +202,24 @@
                     <i class="fa-solid fa-xmark text-gray-400 cursor-pointer hover:text-gray-700 text-xl" onclick="forceCloseDrawer('drawer-contract')"></i>
                 </div>
                 <div class="flex-1 overflow-y-auto p-8">
-                    <div class="section-title mt-0">关联业务 (输入报价单获取)</div>
-                    <div class="flex gap-4"><input type="text" class="form-input font-mono flex-1" placeholder="输入关联的报价单ID (例: Q_2026...)"><button class="bg-gray-800 text-white px-5 py-2.5 rounded text-sm font-medium hover:bg-gray-700 whitespace-nowrap">获取数据</button></div>
+                    <div class="section-title mt-0">关联业务</div>
+                    <div class="flex gap-4"><input id="contractQuoteId" type="text" class="form-input font-mono flex-1" placeholder="关联报价单ID (例: Q_2026...)"><button class="bg-gray-800 text-white px-5 py-2.5 rounded text-sm font-medium hover:bg-gray-700 whitespace-nowrap">获取数据</button></div>
                     <div class="mt-6 p-6 bg-indigo-50 border border-indigo-100 rounded-lg grid grid-cols-2 gap-6">
-                        <div><div class="text-xs text-indigo-400 mb-1">已匹配产品</div><div class="font-bold text-indigo-900 text-base">Higo</div></div>
-                        <div><div class="text-xs text-indigo-400 mb-1">关联 KOL</div><div class="font-bold text-indigo-900 text-base">Eda Yıldız</div></div>
-                        <div class="col-span-2 border-t border-indigo-100 pt-4"><div class="text-xs text-indigo-400 mb-1">合同总金额 (自动带出)</div><div class="font-bold text-indigo-700 text-2xl">$ 3,500.00</div></div>
+                        <div><div class="text-xs text-indigo-400 mb-1">已匹配产品</div><div class="font-bold text-indigo-900 text-base" id="contractPreviewProduct">Higo</div></div>
+                        <div><div class="text-xs text-indigo-400 mb-1">关联 KOL</div><div class="font-bold text-indigo-900 text-base" id="contractPreviewKol">Eda Yıldız</div></div>
+                        <div class="col-span-2 border-t border-indigo-100 pt-4"><div class="text-xs text-indigo-400 mb-1">合同总金额</div><div class="font-bold text-indigo-700 text-2xl" id="contractPreviewAmount">$ 3,500.00</div></div>
                     </div>
                     <div class="section-title">合同细节</div>
                     <div class="grid grid-cols-2 gap-6">
-                        <div class="col-span-2"><label class="form-label">付款方式 <span class="text-red-500">*</span></label><div class="flex gap-8 mt-3"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="pay" class="w-4 h-4 text-indigo-600"> 一次性付款</label><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="pay" checked class="w-4 h-4 text-indigo-600"> 分期付款</label></div></div>
-                        <div><label class="form-label">合同开始日期 <span class="text-red-500">*</span></label><input type="date" class="form-input"></div>
-                        <div><label class="form-label">合同结束日期 <span class="text-red-500">*</span></label><input type="date" class="form-input"></div>
-                    </div>
-                    <div class="section-title">附件上传</div>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center hover:bg-indigo-50 transition-colors cursor-pointer">
-                        <i class="fa-solid fa-file-word text-5xl text-indigo-400 mb-4"></i>
-                        <p class="text-sm font-medium text-gray-700">点击或拖拽上传 合同 Word 文档 <span class="text-red-500">*</span></p>
-                        <p class="text-xs text-gray-400 mt-2">需上传包含KOL及打款信息的标准模板文件</p>
+                        <div class="col-span-2"><label class="form-label">付款方式 <span class="text-red-500">*</span></label><div class="flex gap-8 mt-3"><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="pay" value="一次性" class="w-4 h-4 text-indigo-600"> 一次性</label><label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer"><input type="radio" name="pay" value="分期" checked class="w-4 h-4 text-indigo-600"> 分期</label></div></div>
+                        <div><label class="form-label">开始日期</label><input id="contractStart" type="date" class="form-input"></div>
+                        <div><label class="form-label">结束日期</label><input id="contractEnd" type="date" class="form-input"></div>
+                        <div class="col-span-2"><label class="form-label">总金额 (USD)</label><input id="contractAmount" type="number" class="form-input" placeholder="3500"></div>
                     </div>
                 </div>
                 <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
                     <button onclick="forceCloseDrawer('drawer-contract')" class="px-6 py-2.5 border border-gray-300 rounded text-sm hover:bg-gray-50 font-medium">取消</button>
-                    <button onclick="forceCloseDrawer('drawer-contract')" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">提交审批</button>
+                    <button onclick="saveContract()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button>
                 </div>
             </div>
         </div>
@@ -305,64 +240,37 @@
     </div>
     <div class="content-area">
         <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">服务内容管理</div>
-            <div class="relative"><i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i><input type="text" placeholder="搜索 合同ID / KOL昵称..." class="form-input pl-9 py-1.5 w-64 text-sm"></div>
+            <div class="text-lg font-bold text-gray-800">服务内容</div>
+            <button onclick="openDrawer('drawer-content')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新建服务</button>
         </div>
         <div class="main-content pt-6">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[800px]">
-                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL / 平台</th><th class="th-style">形式</th><th class="th-style">当前状态</th><th class="th-style text-right">操作 (点进详情)</th></tr></thead>
-                    <tbody>
-                        <tr class="hover:bg-gray-50 border-b border-gray-100">
-                            <td class="td-style font-mono text-xs">S_2026_001</td><td class="td-style text-gray-500 text-xs">CTR_2026_001</td>
-                            <td class="td-style">Eda Yıldız / TikTok</td><td class="td-style">Video</td>
-                            <td class="td-style"><span class="badge status-draft">待传素材</span></td>
-                            <td class="td-style text-right"><button class="text-indigo-600 text-sm hover:underline font-medium"><i class="fa-solid fa-upload"></i> 传素材</button></td>
-                        </tr>
-                        <tr class="hover:bg-green-50 bg-green-50/10 border-b border-gray-100">
-                            <td class="td-style font-mono text-xs">S_2026_005</td><td class="td-style text-gray-500 text-xs">CTR_2026_012</td>
-                            <td class="td-style">Can Yaman / IG</td><td class="td-style">Reel</td>
-                            <td class="td-style"><span class="badge status-approved font-medium">审批通过</span></td>
-                            <td class="td-style text-right"><button onclick="openDrawer('drawer-content-link')" class="bg-indigo-600 text-white px-4 py-2 text-xs rounded hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-link"></i> 录入发布信息</button></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50">
-                            <td class="td-style font-mono text-xs">S_2026_008</td><td class="td-style text-gray-500 text-xs">CTR_2026_015</td>
-                            <td class="td-style">PewDie / YT</td><td class="td-style">Video</td>
-                            <td class="td-style"><span class="badge status-paid">已发布</span></td>
-                            <td class="td-style text-right"><button class="btn-outline text-sm"><i class="fa-solid fa-chart-line"></i> 效果数据</button></td>
-                        </tr>
-                    </tbody>
+                <table class="w-full text-left min-w-[900px]">
+                    <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL / 平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style text-right">操作</th></tr></thead>
+                    <tbody id="contentTableBody"></tbody>
                 </table>
             </div>
         </div>
-        <!-- Drawer Content Link -->
-        <div id="drawer-content-link" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-content-link')">
+        <div id="drawer-content" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-content')">
             <div class="drawer" onclick="event.stopPropagation()">
                 <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800">录入发布信息</h2>
-                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-content-link')"></i>
+                    <h2 class="text-lg font-bold text-gray-800">新建服务内容</h2>
+                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-content')"></i>
                 </div>
-                <div class="flex-1 overflow-y-auto p-8">
-                    <div class="bg-gray-50 p-5 rounded-md mb-8 border border-gray-200 text-sm flex gap-8">
-                        <span class="text-gray-500">内容ID: <span class="text-gray-900 font-mono font-bold">S_2026_005</span></span>
-                        <span class="text-gray-500">KOL: <span class="text-gray-900 font-bold">Can Yaman (IG)</span></span>
-                    </div>
-                    <div class="section-title mt-0">发布详情</div>
-                    <div class="space-y-6">
-                        <div><label class="form-label">正式发布链接 (URL) <span class="text-red-500">*</span></label><input type="url" class="form-input" placeholder="https://instagram.com/reel/..."></div>
-                        <div><label class="form-label">实际发布日期 <span class="text-red-500">*</span></label><input type="date" class="form-input w-1/2"></div>
-                    </div>
-                    <div class="section-title">初步效果数据 (非必填)</div>
-                    <div class="grid grid-cols-3 gap-6">
-                        <div><label class="form-label">播放量 (Views)</label><input type="number" class="form-input" placeholder="0"></div>
-                        <div><label class="form-label">点赞量 (Likes)</label><input type="number" class="form-input" placeholder="0"></div>
-                        <div><label class="form-label">评论数 (Comments)</label><input type="number" class="form-input" placeholder="0"></div>
-                    </div>
-                    <div class="mt-8"><label class="form-label">数据截图上传</label><div class="border-2 border-dashed border-gray-300 rounded-lg p-10 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">点击或拖拽上传图片截图</div></div>
+                <div class="flex-1 overflow-y-auto p-8 space-y-6">
+                    <div class="section-title mt-0">服务信息</div>
+                    <div><label class="form-label">关联合同ID <span class="text-red-500">*</span></label><input id="contentContract" type="text" class="form-input" placeholder="CTR_2026_001"></div>
+                    <div><label class="form-label">KOL / 平台 <span class="text-red-500">*</span></label><input id="contentKol" type="text" class="form-input" placeholder="Eda Yıldız / TikTok"></div>
+                    <div><label class="form-label">内容形式 <span class="text-red-500">*</span></label><input id="contentFormat" type="text" class="form-input" placeholder="Video / Reel"></div>
+                    <div><label class="form-label">SPK-Code (非必填)</label><input id="contentSpk" type="text" class="form-input" placeholder="SPK-2026-001"></div>
+                    <div><label class="form-label">有效期 (非必填)</label><input id="contentExpiry" type="date" class="form-input"></div>
+                    <div class="section-title">视频翻译 / 脚本</div>
+                    <div><label class="form-label">原文 (TR)</label><textarea id="contentTr" class="form-input" rows="3" placeholder="土耳其语原文..."></textarea></div>
+                    <div><label class="form-label">翻译 (EN)</label><textarea id="contentEn" class="form-input" rows="3" placeholder="英语翻译..."></textarea></div>
                 </div>
                 <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white">
-                    <button onclick="forceCloseDrawer('drawer-content-link')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button>
-                    <button onclick="forceCloseDrawer('drawer-content-link')" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">确认发布</button>
+                    <button onclick="forceCloseDrawer('drawer-content')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button>
+                    <button onclick="saveContent()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button>
                 </div>
             </div>
         </div>
@@ -383,66 +291,30 @@
     </div>
     <div class="content-area">
         <div class="topbar">
-            <div class="flex gap-6 mt-4">
-                <div class="border-b-2 border-indigo-600 pb-3 text-sm font-bold text-indigo-600 cursor-pointer" onclick="switchDataTab(this, 'pay-creator', 'pay-group')">我的申请</div>
-                <div class="border-b-2 border-transparent pb-3 text-sm font-medium text-gray-500 hover:text-gray-800 cursor-pointer" onclick="switchDataTab(this, 'pay-finance', 'pay-group')">待打款 (1)</div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="relative"><i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i><input type="text" placeholder="搜索 合同ID / 付款单ID..." class="form-input pl-9 py-1.5 w-64 text-sm"></div>
-                <button onclick="openDrawer('drawer-payment')" class="bg-indigo-600 text-white px-4 py-1.5 rounded text-sm font-medium shadow-sm hover:bg-indigo-700"><i class="fa-solid fa-plus mr-1"></i> 新建付款单</button>
-            </div>
+            <div class="text-lg font-bold text-gray-800">付款管理</div>
+            <button onclick="openDrawer('drawer-payment')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新建付款单</button>
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
                 <table class="w-full text-left min-w-[600px]">
                     <thead><tr><th class="th-style">付款单ID</th><th class="th-style">主播</th><th class="th-style">金额</th><th class="th-style">状态</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody id="pay-creator" class="tab-content pay-group active">
-                        <tr class="hover:bg-gray-50"><td class="td-style font-mono text-xs">Pay_CTR_2026_001</td><td class="td-style font-medium">Eda Yıldız</td><td class="td-style font-bold text-indigo-600">$ 1,750.00</td><td class="td-style"><span class="badge status-pending">待业务审批</span></td><td class="td-style text-right text-gray-500 text-sm cursor-pointer hover:underline">查看详细</td></tr>
-                    </tbody>
-                    <tbody id="pay-finance" class="tab-content pay-group">
-                        <tr class="hover:bg-orange-50 bg-orange-50/10"><td class="td-style font-mono text-xs">Pay_CTR_2026_015</td><td class="td-style font-medium">Can Yaman</td><td class="td-style font-bold text-indigo-600">$ 800.00</td><td class="td-style"><span class="badge status-pending font-bold">待您打款</span></td><td class="td-style text-right"><button class="bg-indigo-50 border border-indigo-200 text-indigo-600 text-xs px-3 py-1 rounded hover:bg-indigo-100">确认打款</button></td></tr>
-                    </tbody>
+                    <tbody id="paymentTableBody"></tbody>
                 </table>
             </div>
         </div>
-        <!-- Drawer Payment -->
         <div id="drawer-payment" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-payment')">
             <div class="drawer" onclick="event.stopPropagation()">
                 <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
                     <h2 class="text-lg font-bold">新建付款单</h2><i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-payment')"></i>
                 </div>
-                <div class="flex-1 overflow-y-auto p-8">
-                    <div class="section-title mt-0">关联合同信息 (输入ID获取)</div>
-                    <div class="flex gap-4 mb-5"><input type="text" class="form-input font-mono flex-1" placeholder="输入需付款的合同ID (例: CTR_2026...)"><button class="bg-gray-800 text-white px-5 py-2.5 rounded text-sm font-medium hover:bg-gray-700 whitespace-nowrap">获取数据</button></div>
-                    <div class="bg-indigo-50 p-6 rounded border border-indigo-100 grid grid-cols-2 gap-y-5 text-sm mb-8">
-                        <div><span class="text-indigo-400 block mb-1 text-xs">KOL名字 / 渠道</span><span class="font-bold text-indigo-900 text-base">Eda Yıldız / TikTok</span></div>
-                        <div><span class="text-indigo-400 block mb-1 text-xs">联系邮箱</span><span class="font-bold text-indigo-900 text-base">eda.y@gmail.com</span></div>
-                        <div><span class="text-indigo-400 block mb-1 text-xs">付款方式</span><span class="font-bold text-indigo-900 text-base">分期付款</span></div>
-                        <div><span class="text-indigo-400 block mb-1 text-xs">合同总金额</span><span class="font-bold text-indigo-700 text-xl">$ 3,500.00</span></div>
-                    </div>
-                    <div class="section-title">本次付款明细</div>
-                    <div class="grid grid-cols-2 gap-6 mb-4">
-                        <div><label class="form-label">本次付款金额 (USD) <span class="text-red-500">*</span></label><input type="number" class="form-input text-indigo-700 font-bold" placeholder="1750.00"></div>
-                        <div><label class="form-label">付款方式 (渠道) <span class="text-red-500">*</span></label><select class="form-input"><option>银行电汇 (IBAN)</option><option>币安 (Binance)</option><option>其他</option></select></div>
-                        <div class="col-span-2 flex items-center pt-2"><label class="flex items-center gap-3 cursor-pointer text-sm text-gray-800 font-medium"><input type="checkbox" checked class="w-5 h-5 text-indigo-600 rounded"> 由 KOL 本人收款 (名字需与合同一致)</label></div>
-                    </div>
-                    <div class="section-title">收款人详细信息</div>
-                    <div class="grid grid-cols-2 gap-5">
-                        <div class="col-span-2"><label class="form-label">收款人姓名 / 代收款人 <span class="text-red-500">*</span></label><input type="text" class="form-input bg-gray-50" value="Eda Yıldız" readonly></div>
-                        <div class="col-span-2"><label class="form-label">银行账号 / IBAN <span class="text-red-500">*</span></label><input type="text" class="form-input font-mono" placeholder="TR..."></div>
-                        <div><label class="form-label">银行名称 <span class="text-red-500">*</span></label><input type="text" class="form-input" placeholder="Bank Name"></div>
-                        <div><label class="form-label">Swift Code <span class="text-red-500">*</span></label><input type="text" class="form-input" placeholder="SWIFT..."></div>
-                        <div class="col-span-2"><label class="form-label">银行地址 (Bank Address)</label><input type="text" class="form-input" placeholder="详细地址..."></div>
-                        <div class="col-span-2"><label class="form-label">收款人地址 (Beneficiary Address)</label><input type="text" class="form-input" placeholder="收款人所在地址..."></div>
-                    </div>
-                    <div class="section-title">凭证文件上传</div>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center text-gray-500 cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 transition-colors">
-                        <i class="fa-solid fa-file-invoice text-5xl mb-4 text-indigo-400"></i>
-                        <p class="text-sm font-medium text-gray-700">点击或拖拽上传 Invoice Word (含签字符)</p>
-                        <p class="text-xs mt-2">非本人收款需一并上传代收款协议Word</p>
-                    </div>
+                <div class="flex-1 overflow-y-auto p-8 space-y-6">
+                    <div><label class="form-label">关联合同ID</label><input id="paymentContract" type="text" class="form-input" placeholder="CTR_2026_001"></div>
+                    <div><label class="form-label">主播名称</label><input id="paymentKol" type="text" class="form-input" placeholder="Eda Yıldız"></div>
+                    <div><label class="form-label">金额 (USD)</label><input id="paymentAmount" type="number" class="form-input" placeholder="1750"></div>
+                    <div><label class="form-label">状态</label><select id="paymentStatus" class="form-input"><option value="待打款">待打款</option><option value="已打款">已打款</option></select></div>
+                    <div><label class="form-label">备注</label><textarea id="paymentNote" class="form-input" rows="2" placeholder="备注..."></textarea></div>
                 </div>
-                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white"><button onclick="forceCloseDrawer('drawer-payment')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button><button onclick="forceCloseDrawer('drawer-payment')" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">提交业务审批</button></div>
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white"><button onclick="forceCloseDrawer('drawer-payment')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50 font-medium">取消</button><button onclick="savePayment()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button></div>
             </div>
         </div>
     </div>
@@ -462,26 +334,34 @@
     </div>
     <div class="content-area">
         <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">推广明细记录</div>
-            <div class="flex items-center gap-3">
-                <input type="date" class="form-input py-1.5 text-sm w-36"><span class="text-gray-400">至</span>
-                <input type="date" class="form-input py-1.5 text-sm w-36">
-                <button class="bg-gray-100 text-gray-600 px-4 py-1.5 rounded text-sm hover:bg-gray-200 font-medium">导出明细</button>
-            </div>
+            <div class="text-lg font-bold text-gray-800">推广明细</div>
+            <button onclick="openDrawer('drawer-promotion')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 新增明细</button>
         </div>
         <div class="main-content">
             <div class="grid grid-cols-4 gap-6 mb-6">
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"><div class="text-xs text-gray-500 mb-2">当月已消耗金额 (折算)</div><div class="text-2xl font-bold text-indigo-600">$ 12,450.00</div></div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"><div class="text-xs text-gray-500 mb-2">本月发布内容数</div><div class="text-2xl font-bold text-gray-800">45 <span class="text-sm font-normal text-gray-400">条</span></div></div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"><div class="text-xs text-gray-500 mb-2">当月已消耗金额</div><div class="text-2xl font-bold text-indigo-600" id="totalConsumed">$ 0.00</div></div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm"><div class="text-xs text-gray-500 mb-2">本月发布内容数</div><div class="text-2xl font-bold text-gray-800" id="totalContents">0</div></div>
             </div>
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[900px]">
-                    <thead><tr><th class="th-style">发布日期</th><th class="th-style">平台</th><th class="th-style">主播 (KOL)</th><th class="th-style">内容形式</th><th class="th-style">内容ID / 直达链接</th><th class="th-style">消耗折算单价</th><th class="th-style text-right">备注</th></tr></thead>
-                    <tbody>
-                        <tr class="hover:bg-gray-50"><td class="td-style font-medium text-gray-900">2026-06-25</td><td class="td-style"><i class="fa-brands fa-tiktok mr-1"></i> TikTok</td><td class="td-style font-medium">Eda Yıldız</td><td class="td-style text-gray-600">Video</td><td class="td-style"><div class="text-xs font-mono text-gray-400 mb-0.5">S_2026_001</div><a href="#" class="text-indigo-600 text-sm hover:underline">查看帖子</a></td><td class="td-style font-bold text-red-600">$ 2,000.00</td><td class="td-style text-right text-gray-500 text-xs">大促预热</td></tr>
-                        <tr class="hover:bg-gray-50"><td class="td-style font-medium text-gray-900">2026-06-24</td><td class="td-style"><i class="fa-brands fa-instagram text-pink-600 mr-1"></i> IG</td><td class="td-style font-medium">Can Yaman</td><td class="td-style text-gray-600">Reel</td><td class="td-style"><div class="text-xs font-mono text-gray-400 mb-0.5">S_2026_005</div><a href="#" class="text-indigo-600 text-sm hover:underline">查看帖子</a></td><td class="td-style font-bold text-red-600">$ 750.00</td><td class="td-style text-right text-gray-500 text-xs">打包价拆算</td></tr>
-                    </tbody>
+                <table class="w-full text-left min-w-[800px]">
+                    <thead><tr><th class="th-style">日期</th><th class="th-style">平台</th><th class="th-style">主播</th><th class="th-style">形式</th><th class="th-style">单价</th><th class="th-style text-right">操作</th></tr></thead>
+                    <tbody id="promotionTableBody"></tbody>
                 </table>
+            </div>
+        </div>
+        <div id="drawer-promotion" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-promotion')">
+            <div class="drawer" onclick="event.stopPropagation()">
+                <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                    <h2 class="text-lg font-bold">新增推广明细</h2><i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-promotion')"></i>
+                </div>
+                <div class="flex-1 overflow-y-auto p-8 space-y-6">
+                    <div><label class="form-label">日期</label><input id="promoDate" type="date" class="form-input"></div>
+                    <div><label class="form-label">平台</label><input id="promoPlatform" type="text" class="form-input" placeholder="TikTok"></div>
+                    <div><label class="form-label">主播</label><input id="promoKol" type="text" class="form-input" placeholder="Eda Yıldız"></div>
+                    <div><label class="form-label">内容形式</label><input id="promoFormat" type="text" class="form-input" placeholder="Video"></div>
+                    <div><label class="form-label">消耗单价 (USD)</label><input id="promoPrice" type="number" class="form-input" placeholder="2000"></div>
+                </div>
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white"><button onclick="forceCloseDrawer('drawer-promotion')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50">取消</button><button onclick="savePromotion()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button></div>
             </div>
         </div>
     </div>
@@ -501,70 +381,295 @@
     </div>
     <div class="content-area">
         <div class="topbar">
-            <div class="text-lg font-bold text-gray-800">主播全局素材库</div>
-            <div class="flex items-center gap-3">
-                <div class="relative"><i class="fa-solid fa-search absolute left-3 top-2.5 text-gray-400 text-sm"></i><input type="text" placeholder="搜索主播名称..." class="form-input pl-9 py-1.5 w-64 text-sm focus:border-indigo-500"></div>
-            </div>
+            <div class="text-lg font-bold text-gray-800">主播素材库</div>
+            <button onclick="openDrawer('drawer-asset')" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-indigo-700 shadow-sm"><i class="fa-solid fa-plus mr-1"></i> 添加素材</button>
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
                 <table class="w-full text-left min-w-[700px]">
-                    <thead><tr><th class="th-style w-40 text-center">小图预览</th><th class="th-style w-48">主播名字</th><th class="th-style">素材特征</th><th class="th-style">关联业务 / 平台</th><th class="th-style text-right">操作</th></tr></thead>
-                    <tbody>
-                        <tr class="hover:bg-gray-50 border-b border-gray-100">
-                            <td class="td-style text-center py-3"><div class="w-28 h-16 bg-gray-200 rounded relative overflow-hidden inline-block mx-auto border border-gray-300"><img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover"><div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20"><i class="fa-solid fa-play text-white text-lg"></i></div></div></td>
-                            <td class="td-style font-bold text-gray-900">Eda Yıldız</td>
-                            <td class="td-style"><div class="flex gap-2 flex-wrap"><span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded text-xs border border-indigo-100 font-medium">口播出镜</span><span class="px-2.5 py-1 bg-pink-50 text-pink-600 rounded text-xs border border-pink-100 font-medium">头巾女</span><span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200 font-medium">美妆教程</span></div></td>
-                            <td class="td-style text-gray-500 text-sm"><div class="font-mono text-xs">S_2026_001</div><div class="mt-1 text-xs"><i class="fa-brands fa-tiktok text-black"></i> TikTok</div></td>
-                            <td class="td-style text-right"><button onclick="openDrawer('drawer-asset-detail')" class="btn-outline text-sm font-medium">查看详细</button></td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 border-b border-gray-100">
-                            <td class="td-style text-center py-3"><div class="w-28 h-16 bg-gray-200 rounded relative overflow-hidden inline-block mx-auto border border-gray-300"><img src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?ixlib=rb-1.2.1&auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover"></div></td>
-                            <td class="td-style font-bold text-gray-900">Can Yaman</td>
-                            <td class="td-style"><div class="flex gap-2 flex-wrap"><span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 rounded text-xs border border-indigo-100 font-medium">产品展示</span><span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded text-xs border border-gray-200 font-medium">无配音</span></div></td>
-                            <td class="td-style text-gray-500 text-sm"><div class="font-mono text-xs">S_2026_005</div><div class="mt-1 text-xs"><i class="fa-brands fa-instagram text-pink-600"></i> Instagram</div></td>
-                            <td class="td-style text-right"><button onclick="openDrawer('drawer-asset-detail')" class="btn-outline text-sm font-medium">查看详细</button></td>
-                        </tr>
-                    </tbody>
+                    <thead><tr><th class="th-style w-32 text-center">预览</th><th class="th-style">主播</th><th class="th-style">特征</th><th class="th-style">平台</th><th class="th-style text-right">操作</th></tr></thead>
+                    <tbody id="assetTableBody"></tbody>
                 </table>
             </div>
         </div>
-        <!-- Drawer Asset Detail -->
-        <div id="drawer-asset-detail" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-asset-detail')">
+        <div id="drawer-asset" class="drawer-overlay" onclick="closeDrawer(event, 'drawer-asset')">
             <div class="drawer" onclick="event.stopPropagation()">
                 <div class="px-8 py-5 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800">素材详细内容</h2>
-                    <i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl hover:text-gray-700" onclick="forceCloseDrawer('drawer-asset-detail')"></i>
+                    <h2 class="text-lg font-bold">添加素材</h2><i class="fa-solid fa-xmark text-gray-400 cursor-pointer text-xl" onclick="forceCloseDrawer('drawer-asset')"></i>
                 </div>
-                <div class="flex-1 overflow-y-auto p-8">
-                    <div class="w-full aspect-video bg-gray-900 rounded-lg relative overflow-hidden shadow-inner mb-8">
-                        <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-70">
-                        <div class="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-black hover:bg-opacity-20 transition-colors"><div class="w-16 h-16 rounded-full bg-white bg-opacity-20 flex items-center justify-center backdrop-blur-sm border border-white border-opacity-30"><i class="fa-solid fa-play text-white text-2xl ml-1"></i></div></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-8 mb-8">
-                        <div><div class="text-xs text-gray-500 mb-1">主播名称</div><div class="font-bold text-gray-900 text-lg">Eda Yıldız</div></div>
-                        <div><div class="text-xs text-gray-500 mb-1">发布平台</div><div class="font-medium text-gray-800 text-base"><i class="fa-brands fa-tiktok mr-1"></i> TikTok</div></div>
-                        <div class="col-span-2"><div class="text-xs text-gray-500 mb-3">素材特征标签</div><div class="flex gap-3"><span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded text-sm border border-indigo-100 font-medium">口播出镜</span><span class="px-3 py-1 bg-pink-50 text-pink-600 rounded text-sm border border-pink-100 font-medium">头巾女</span><span class="px-3 py-1 bg-gray-100 text-gray-600 rounded text-sm border border-gray-200 font-medium">美妆教程</span></div></div>
-                    </div>
-                    <div class="section-title">视频翻译 / 脚本内容</div>
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-sm text-gray-700 leading-relaxed shadow-sm">
-                        <p class="mb-4"><span class="font-bold text-indigo-600">TR (原文):</span> "Merhaba arkadaşlar! Bugün sizlere Higo'nun yeni yaz koleksiyonunu tanıtacağım. Gördüğünüz gibi renkler harika ve dokusu çok hafif..."</p>
-                        <p><span class="font-bold text-green-600">EN (翻译):</span> "Hello friends! Today I will introduce you to Higo's new summer collection. As you can see, the colors are amazing and the texture is very light..."</p>
-                    </div>
+                <div class="flex-1 overflow-y-auto p-8 space-y-6">
+                    <div><label class="form-label">主播名称</label><input id="assetName" type="text" class="form-input" placeholder="Eda Yıldız"></div>
+                    <div><label class="form-label">平台</label><input id="assetPlatform" type="text" class="form-input" placeholder="TikTok"></div>
+                    <div><label class="form-label">特征标签 (逗号分隔)</label><input id="assetTags" type="text" class="form-input" placeholder="口播出镜, 美妆"></div>
+                    <div><label class="form-label">预览图URL</label><input id="assetImg" type="text" class="form-input" placeholder="https://..."></div>
                 </div>
+                <div class="p-6 border-t border-gray-200 flex justify-end gap-4 bg-white"><button onclick="forceCloseDrawer('drawer-asset')" class="px-6 py-2.5 border rounded text-sm hover:bg-gray-50">取消</button><button onclick="saveAsset()" class="px-6 py-2.5 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700">保存</button></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // ========== 数据存储 ==========
+    let kolData = JSON.parse(localStorage.getItem('kolData')) || [
+        { id: 1, name: 'Eda Yıldız', platform: 'TikTok', followers: '1.2M', country: '土耳其 (TR)', tags: '美妆', email: 'eda.y@gmail.com', type: '个人', url: '#', lang: '土耳其语,英语', gender: '女', phone: '', style: '', note: '' },
+        { id: 2, name: 'Can Yaman Gamers', platform: 'Instagram', followers: '850K', country: '土耳其 (TR)', tags: '游戏', email: 'contact@cangaming.net', type: '中介', url: '#', lang: '土耳其语,英语', gender: '男', phone: '', style: '', note: '' }
+    ];
+    let quoteData = JSON.parse(localStorage.getItem('quoteData')) || [];
+    let contractData = JSON.parse(localStorage.getItem('contractData')) || [];
+    let contentData = JSON.parse(localStorage.getItem('contentData')) || [];
+    let paymentData = JSON.parse(localStorage.getItem('paymentData')) || [];
+    let promotionData = JSON.parse(localStorage.getItem('promotionData')) || [];
+    let assetData = JSON.parse(localStorage.getItem('assetData')) || [];
+
+    function saveAll() {
+        localStorage.setItem('kolData', JSON.stringify(kolData));
+        localStorage.setItem('quoteData', JSON.stringify(quoteData));
+        localStorage.setItem('contractData', JSON.stringify(contractData));
+        localStorage.setItem('contentData', JSON.stringify(contentData));
+        localStorage.setItem('paymentData', JSON.stringify(paymentData));
+        localStorage.setItem('promotionData', JSON.stringify(promotionData));
+        localStorage.setItem('assetData', JSON.stringify(assetData));
+        renderAll();
+    }
+
+    function renderAll() { renderKol(); renderQuote(); renderContract(); renderContent(); renderPayment(); renderPromotion(); renderAsset(); }
+
+    // ========== KOL ==========
+    function renderKol() {
+        const search = document.getElementById('kolSearch').value.toLowerCase();
+        const filter = document.getElementById('kolFilter').value;
+        let list = kolData.filter(k => {
+            const matchSearch = k.name.toLowerCase().includes(search) || k.email.toLowerCase().includes(search);
+            const matchFilter = filter === 'all' || k.type === filter;
+            return matchSearch && matchFilter;
+        });
+        const tbody = document.getElementById('kolTableBody');
+        if (list.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="8">暂无数据，点击 "录入KOL" 添加</td></tr>`; return; }
+        tbody.innerHTML = list.map(k => `
+            <tr class="hover:bg-gray-50">
+                <td class="td-style font-medium">${k.name}</td><td class="td-style">${k.platform}</td>
+                <td class="td-style font-semibold text-gray-900">${k.followers}</td>
+                <td class="td-style">${k.country}</td><td class="td-style"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">${k.tags}</span></td>
+                <td class="td-style text-gray-500">${k.email}</td>
+                <td class="td-style"><span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded border border-blue-100">${k.type}</span></td>
+                <td class="td-style text-right"><span class="delete-btn" onclick="deleteKol(${k.id})"><i class="fa-solid fa-trash"></i></span></td>
+            </tr>
+        `).join('');
+    }
+
+    function saveKol() {
+        const name = document.getElementById('kolName').value.trim();
+        if (!name) { alert('请输入KOL昵称'); return; }
+        const newItem = {
+            id: Date.now(),
+            name: name,
+            platform: document.getElementById('kolPlatform').value,
+            followers: document.getElementById('kolFollowers').value.trim() || '0',
+            country: document.getElementById('kolCountry').value,
+            tags: document.getElementById('kolTags').value.trim() || '未分类',
+            email: document.getElementById('kolEmail').value.trim(),
+            type: document.getElementById('kolGender').value === '女' ? '个人' : '中介', // 映射
+            url: document.getElementById('kolUrl').value.trim() || '#',
+            lang: document.getElementById('kolLang').value.trim(),
+            gender: document.getElementById('kolGender').value,
+            phone: document.getElementById('kolPhone').value.trim(),
+            style: document.getElementById('kolStyle').value.trim(),
+            note: document.getElementById('kolNote').value.trim()
+        };
+        kolData.push(newItem);
+        saveAll();
+        forceCloseDrawer('drawer-kol');
+        document.getElementById('kolName').value = '';
+        document.getElementById('kolFollowers').value = '';
+        document.getElementById('kolTags').value = '';
+        document.getElementById('kolEmail').value = '';
+    }
+
+    function deleteKol(id) { if (confirm('确认删除？')) { kolData = kolData.filter(k => k.id !== id); saveAll(); } }
+
+    // ========== 报价 ==========
+    function renderQuote() {
+        const tbody = document.getElementById('quoteTableBody');
+        if (quoteData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无报价，点击 "新建报价单" 添加</td></tr>`; return; }
+        tbody.innerHTML = quoteData.map(q => `
+            <tr class="hover:bg-gray-50">
+                <td class="td-style font-mono text-xs">${q.id}</td><td class="td-style font-medium">${q.kol}</td>
+                <td class="td-style">${q.product}</td><td class="td-style">${q.platform}</td>
+                <td class="td-style text-xs text-gray-600">${q.content}</td><td class="td-style font-bold text-gray-900">$ ${q.amount}</td>
+                <td class="td-style text-right"><span class="delete-btn" onclick="deleteQuote('${q.id}')"><i class="fa-solid fa-trash"></i></span></td>
+            </tr>
+        `).join('');
+    }
+
+    function saveQuote() {
+        const kol = document.getElementById('quoteKol').value.trim();
+        if (!kol) { alert('请输入KOL名称'); return; }
+        const id = 'Q_' + Date.now().toString(36).toUpperCase();
+        quoteData.push({ id, kol, product: document.getElementById('quoteProduct').value.trim() || 'Higo', platform: document.getElementById('quotePlatform').value.trim() || 'TikTok', content: document.getElementById('quoteContent').value.trim() || '1 Video', amount: document.getElementById('quoteAmount').value || '0', note: document.getElementById('quoteNote').value.trim() });
+        saveAll();
+        forceCloseDrawer('drawer-quote');
+        document.getElementById('quoteKol').value = '';
+        document.getElementById('quoteAmount').value = '';
+    }
+
+    function deleteQuote(id) { if (confirm('确认删除？')) { quoteData = quoteData.filter(q => q.id !== id); saveAll(); } }
+
+    // ========== 合同 ==========
+    function renderContract() {
+        const tbody = document.getElementById('contractTableBody');
+        if (contractData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">暂无合同，点击 "创建合同" 添加</td></tr>`; return; }
+        tbody.innerHTML = contractData.map(c => `
+            <tr class="hover:bg-gray-50">
+                <td class="td-style font-bold text-gray-900">${c.id}</td><td class="td-style font-mono text-xs">${c.quoteId}</td>
+                <td class="td-style">${c.payMethod}</td><td class="td-style font-bold">$ ${c.amount}</td>
+                <td class="td-style"><span class="badge status-active">生效中</span></td>
+                <td class="td-style text-right"><span class="delete-btn" onclick="deleteContract('${c.id}')"><i class="fa-solid fa-trash"></i></span></td>
+            </tr>
+        `).join('');
+    }
+
+    function saveContract() {
+        const quoteId = document.getElementById('contractQuoteId').value.trim();
+        if (!quoteId) { alert('请输入关联报价单ID'); return; }
+        const id = 'CTR_' + Date.now().toString(36).toUpperCase();
+        const payMethod = document.querySelector('input[name="pay"]:checked')?.value || '一次性';
+        contractData.push({ id, quoteId, payMethod, amount: document.getElementById('contractAmount').value || '0', start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value });
+        saveAll();
+        forceCloseDrawer('drawer-contract');
+        document.getElementById('contractQuoteId').value = '';
+        document.getElementById('contractAmount').value = '';
+    }
+
+    function deleteContract(id) { if (confirm('确认删除？')) { contractData = contractData.filter(c => c.id !== id); saveAll(); } }
+
+    // ========== 服务内容 ==========
+    function renderContent() {
+        const tbody = document.getElementById('contentTableBody');
+        if (contentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无服务，点击 "新建服务" 添加</td></tr>`; return; }
+        tbody.innerHTML = contentData.map(c => `
+            <tr class="hover:bg-gray-50">
+                <td class="td-style font-mono text-xs">${c.id}</td><td class="td-style text-xs">${c.contract}</td>
+                <td class="td-style">${c.kol}</td><td class="td-style">${c.format}</td>
+                <td class="td-style text-xs text-gray-500">${c.spk || '-'}</td>
+                <td class="td-style text-xs">${c.expiry || '-'}</td>
+                <td class="td-style text-right"><span class="delete-btn" onclick="deleteContent('${c.id}')"><i class="fa-solid fa-trash"></i></span></td>
+            </tr>
+        `).join('');
+    }
+
+    function saveContent() {
+        const contract = document.getElementById('contentContract').value.trim();
+        if (!contract) { alert('请输入关联合同ID'); return; }
+        const id = 'S_' + Date.now().toString(36).toUpperCase();
+        contentData.push({ id, contract, kol: document.getElementById('contentKol').value.trim() || '未知', format: document.getElementById('contentFormat').value.trim() || 'Video', spk: document.getElementById('contentSpk').value.trim(), expiry: document.getElementById('contentExpiry').value, tr: document.getElementById('contentTr').value.trim(), en: document.getElementById('contentEn').value.trim() });
+        saveAll();
+        forceCloseDrawer('drawer-content');
+        document.getElementById('contentContract').value = '';
+        document.getElementById('contentSpk').value = '';
+        document.getElementById('contentTr').value = '';
+        document.getElementById('contentEn').value = '';
+    }
+
+    function deleteContent(id) { if (confirm('确认删除？')) { contentData = contentData.filter(c => c.id !== id); saveAll(); } }
+
+    // ========== 付款 ==========
+    function renderPayment() {
+        const tbody = document.getElementById('paymentTableBody');
+        if (paymentData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="5">暂无付款，点击 "新建付款单" 添加</td></tr>`; return; }
+        tbody.innerHTML = paymentData.map(p => `
+            <tr class="hover:bg-gray-50">
+                <td class="td-style font-mono text-xs">${p.id}</td><td class="td-style font-medium">${p.kol}</td>
+                <td class="td-style font-bold text-indigo-600">$ ${p.amount}</td>
+                <td class="td-style"><span class="badge ${p.status === '已打款' ? 'status-active' : 'status-pending'}">${p.status}</span></td>
+                <td class="td-style text-right"><span class="delete-btn" onclick="deletePayment('${p.id}')"><i class="fa-solid fa-trash"></i></span></td>
+            </tr>
+        `).join('');
+    }
+
+    function savePayment() {
+        const kol = document.getElementById('paymentKol').value.trim();
+        if (!kol) { alert('请输入主播名称'); return; }
+        const id = 'Pay_' + Date.now().toString(36).toUpperCase();
+        paymentData.push({ id, contract: document.getElementById('paymentContract').value.trim(), kol, amount: document.getElementById('paymentAmount').value || '0', status: document.getElementById('paymentStatus').value, note: document.getElementById('paymentNote').value.trim() });
+        saveAll();
+        forceCloseDrawer('drawer-payment');
+        document.getElementById('paymentKol').value = '';
+        document.getElementById('paymentAmount').value = '';
+    }
+
+    function deletePayment(id) { if (confirm('确认删除？')) { paymentData = paymentData.filter(p => p.id !== id); saveAll(); } }
+
+    // ========== 推广明细 ==========
+    function renderPromotion() {
+        const tbody = document.getElementById('promotionTableBody');
+        let totalAmount = 0;
+        if (promotionData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">暂无推广明细，点击 "新增明细" 添加</td></tr>`; } else {
+            tbody.innerHTML = promotionData.map(p => {
+                totalAmount += parseFloat(p.price) || 0;
+                return `<tr class="hover:bg-gray-50">
+                    <td class="td-style">${p.date}</td><td class="td-style">${p.platform}</td>
+                    <td class="td-style font-medium">${p.kol}</td><td class="td-style">${p.format}</td>
+                    <td class="td-style font-bold text-red-600">$ ${p.price}</td>
+                    <td class="td-style text-right"><span class="delete-btn" onclick="deletePromotion('${p.id}')"><i class="fa-solid fa-trash"></i></span></td>
+                </tr>`;
+            }).join('');
+        }
+        document.getElementById('totalConsumed').textContent = '$ ' + totalAmount.toFixed(2);
+        document.getElementById('totalContents').textContent = promotionData.length;
+    }
+
+    function savePromotion() {
+        const date = document.getElementById('promoDate').value;
+        if (!date) { alert('请选择日期'); return; }
+        const id = 'PROMO_' + Date.now().toString(36).toUpperCase();
+        promotionData.push({ id, date, platform: document.getElementById('promoPlatform').value.trim() || 'TikTok', kol: document.getElementById('promoKol').value.trim() || '未知', format: document.getElementById('promoFormat').value.trim() || 'Video', price: document.getElementById('promoPrice').value || '0' });
+        saveAll();
+        forceCloseDrawer('drawer-promotion');
+        document.getElementById('promoDate').value = '';
+        document.getElementById('promoPrice').value = '';
+    }
+
+    function deletePromotion(id) { if (confirm('确认删除？')) { promotionData = promotionData.filter(p => p.id !== id); saveAll(); } }
+
+    // ========== 素材库 ==========
+    function renderAsset() {
+        const tbody = document.getElementById('assetTableBody');
+        if (assetData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="5">暂无素材，点击 "添加素材" 添加</td></tr>`; return; }
+        tbody.innerHTML = assetData.map(a => `
+            <tr class="hover:bg-gray-50">
+                <td class="td-style text-center"><div class="w-20 h-12 bg-gray-200 rounded overflow-hidden mx-auto border border-gray-300"><img src="${a.img || 'https://via.placeholder.com/80x48'}" class="w-full h-full object-cover"></div></td>
+                <td class="td-style font-bold">${a.name}</td>
+                <td class="td-style"><div class="flex gap-1 flex-wrap">${a.tags.split(',').map(t => `<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs border border-indigo-100">${t.trim()}</span>`).join('')}</div></td>
+                <td class="td-style">${a.platform}</td>
+                <td class="td-style text-right"><span class="delete-btn" onclick="deleteAsset('${a.id}')"><i class="fa-solid fa-trash"></i></span></td>
+            </tr>
+        `).join('');
+    }
+
+    function saveAsset() {
+        const name = document.getElementById('assetName').value.trim();
+        if (!name) { alert('请输入主播名称'); return; }
+        const id = 'ASSET_' + Date.now().toString(36).toUpperCase();
+        assetData.push({ id, name, platform: document.getElementById('assetPlatform').value.trim() || 'TikTok', tags: document.getElementById('assetTags').value.trim() || '通用', img: document.getElementById('assetImg').value.trim() || 'https://via.placeholder.com/80x48' });
+        saveAll();
+        forceCloseDrawer('drawer-asset');
+        document.getElementById('assetName').value = '';
+        document.getElementById('assetTags').value = '';
+    }
+
+    function deleteAsset(id) { if (confirm('确认删除？')) { assetData = assetData.filter(a => a.id !== id); saveAll(); } }
+
+    // ========== 导航 & 抽屉 ==========
     function switchView(viewId) {
         document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
     }
+
     function openDrawer(id) { document.getElementById(id).classList.add('show'); }
-    function closeDrawer(e, id) { if(e.target.id === id) forceCloseDrawer(id); }
+    function closeDrawer(e, id) { if (e.target.id === id) forceCloseDrawer(id); }
     function forceCloseDrawer(id) { document.getElementById(id).classList.remove('show'); }
+
     function switchDataTab(clicked, targetId, group) {
         const parent = clicked.parentNode;
         parent.querySelectorAll('.border-b-2').forEach(tab => {
@@ -576,6 +681,9 @@
         document.querySelectorAll('.' + group).forEach(b => b.classList.remove('active'));
         document.getElementById(targetId).classList.add('active');
     }
+
+    // 初始化
+    renderAll();
 </script>
 </body>
 </html>
