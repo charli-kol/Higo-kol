@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Higo KOL 管理系统 · 最终版</title>
+    <title>Higo KOL 管理系统 · 最终修复版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -47,8 +47,8 @@
         video { max-width: 100%; max-height: 120px; border-radius: 4px; }
         .file-preview-link { color: #4F46E5; text-decoration: underline; cursor: pointer; }
         .file-preview-link:hover { color: #3730A3; }
-        .asset-video { max-width: 160px; max-height: 90px; border-radius: 6px; border: 1px solid #E2E8F0; }
-        .asset-translate { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; }
+        .asset-video { max-width: 220px; max-height: 140px; border-radius: 6px; border: 1px solid #E2E8F0; }
+        .asset-translate { max-width: 260px; word-break: break-word; display: inline-block; }
     </style>
 </head>
 <body>
@@ -148,8 +148,8 @@
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[800px]">
-                    <thead><tr><th class="th-style">报价单ID</th><th class="th-style">主播 (KOL)</th><th class="th-style">平台</th><th class="th-style">合作内容</th><th class="th-style">金额</th><th class="th-style text-right">操作</th></tr></thead>
+                <table class="w-full text-left min-w-[900px]">
+                    <thead><tr><th class="th-style">报价单ID</th><th class="th-style">主播 (KOL)</th><th class="th-style">平台</th><th class="th-style">合作内容</th><th class="th-style">金额</th><th class="th-style">主页链接</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="quoteTableBody"></tbody>
                 </table>
             </div>
@@ -208,8 +208,8 @@
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[900px]">
-                    <thead><tr><th class="th-style">合同ID</th><th class="th-style">报价单ID</th><th class="th-style">KOL</th><th class="th-style">付款方式</th><th class="th-style">总金额</th><th class="th-style">合同文件</th><th class="th-style text-right">操作</th></tr></thead>
+                <table class="w-full text-left min-w-[1000px]">
+                    <thead><tr><th class="th-style">合同ID</th><th class="th-style">报价单ID</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">形式</th><th class="th-style">付款方式</th><th class="th-style">总金额</th><th class="th-style">合同文件</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="contractTableBody"></tbody>
                 </table>
             </div>
@@ -278,7 +278,7 @@
         </div>
         <div class="main-content pt-6">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1100px]">
+                <table class="w-full text-left min-w-[1200px]">
                     <thead><tr><th class="th-style">内容ID</th><th class="th-style">关联合同</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">形式</th><th class="th-style">SPK-Code</th><th class="th-style">有效期</th><th class="th-style">发布链接</th><th class="th-style">视频</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="contentTableBody"></tbody>
                 </table>
@@ -336,7 +336,7 @@
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1100px]">
+                <table class="w-full text-left min-w-[1200px]">
                     <thead><tr><th class="th-style">付款单ID</th><th class="th-style">合同ID</th><th class="th-style">KOL</th><th class="th-style">金额</th><th class="th-style">状态</th><th class="th-style">Invoice</th><th class="th-style">凭证</th><th class="th-style text-right">操作</th></tr></thead>
                     <tbody id="paymentTableBody"></tbody>
                 </table>
@@ -446,8 +446,8 @@
         </div>
         <div class="main-content">
             <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
-                <table class="w-full text-left min-w-[1000px]">
-                    <thead><tr><th class="th-style w-40 text-center">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style w-48">翻译 (中文)</th><th class="th-style">发布链接</th></tr></thead>
+                <table class="w-full text-left min-w-[1100px]">
+                    <thead><tr><th class="th-style w-48 text-center">视频预览</th><th class="th-style">KOL</th><th class="th-style">平台</th><th class="th-style">内容形式</th><th class="th-style">SPK-Code</th><th class="th-style w-64">翻译 (中文)</th><th class="th-style">发布链接</th></tr></thead>
                     <tbody id="assetTableBody"></tbody>
                 </table>
             </div>
@@ -467,14 +467,12 @@
     function generateId(prefix) {
         const now = new Date();
         const dateStr = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0');
-        // 根据前缀获取对应数据数组
         let arr;
         if (prefix === 'Q') arr = quoteData;
         else if (prefix === 'CTR') arr = contractData;
         else if (prefix === 'S') arr = contentData;
         else if (prefix === 'Payment') arr = paymentData;
         else return prefix + '_' + dateStr + '_001';
-        // 筛选当天该前缀的ID
         const dayIds = arr.filter(item => item.id.startsWith(prefix + '_' + dateStr));
         const seq = dayIds.length + 1;
         return prefix + '_' + dateStr + '_' + String(seq).padStart(3,'0');
@@ -485,9 +483,6 @@
         const seq = String(payments.length + 1).padStart(2,'0');
         return 'Payment_' + contractId + '_' + seq;
     }
-
-    function generateInvoiceId(contractId) { return 'Invoice_' + contractId; }
-    function generateAgrId(contractId) { return 'Agr_' + contractId; }
 
     function saveAll() {
         localStorage.setItem('kolData', JSON.stringify(kolData));
@@ -568,7 +563,22 @@
         document.getElementById('kolEmail').value = '';
     }
 
-    function deleteKol(id) { if (confirm('确认删除？')) { kolData = kolData.filter(k => k.id !== id); saveAll(); } }
+    function deleteKol(id) {
+        if (!confirm('确认删除该KOL？将同时删除关联的报价单、合同、服务内容和付款单！')) return;
+        const kol = kolData.find(k => k.id === id);
+        if (!kol) return;
+        // 删除关联报价单
+        quoteData = quoteData.filter(q => q.kolId !== id);
+        // 删除关联合同（通过报价单）
+        const quoteIds = quoteData.filter(q => q.kolId === id).map(q => q.id);
+        contractData = contractData.filter(c => !quoteIds.includes(c.quoteId));
+        // 删除关联服务内容
+        contentData = contentData.filter(c => c.kol !== kol.name);
+        // 删除关联付款单
+        paymentData = paymentData.filter(p => p.kol !== kol.name);
+        kolData = kolData.filter(k => k.id !== id);
+        saveAll();
+    }
 
     // ========== 报价 ==========
     function searchKolForQuote() {
@@ -591,18 +601,20 @@
 
     function renderQuote() {
         const tbody = document.getElementById('quoteTableBody');
-        if (quoteData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="6">暂无报价，点击 "新建报价单" 添加</td></tr>`; return; }
-        tbody.innerHTML = quoteData.map(q => `
-            <tr class="hover:bg-gray-50">
+        if (quoteData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无报价，点击 "新建报价单" 添加</td></tr>`; return; }
+        tbody.innerHTML = quoteData.map(q => {
+            const kol = kolData.find(k => k.id === q.kolId);
+            return `<tr class="hover:bg-gray-50">
                 <td class="td-style font-mono text-xs">${q.id}</td><td class="td-style font-medium">${q.kol}</td>
                 <td class="td-style">${q.platform}</td><td class="td-style text-xs text-gray-600">${q.format} x${q.qty}</td>
                 <td class="td-style font-bold text-gray-900">$ ${q.amount}</td>
+                <td class="td-style">${kol && kol.url && kol.url !== '#' ? `<a href="${kol.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 主页</a>` : '-'}</td>
                 <td class="td-style text-right">
                     <span class="edit-btn" onclick="editQuote('${q.id}')"><i class="fa-solid fa-pen"></i></span>
                     <span class="delete-btn" onclick="deleteQuote('${q.id}')"><i class="fa-solid fa-trash"></i></span>
                 </td>
-            </tr>
-        `).join('');
+            </tr>`;
+        }).join('');
     }
 
     function editQuote(id) {
@@ -644,7 +656,19 @@
         document.getElementById('quoteQty').value = '1';
     }
 
-    function deleteQuote(id) { if (confirm('确认删除？')) { quoteData = quoteData.filter(q => q.id !== id); saveAll(); } }
+    function deleteQuote(id) {
+        if (!confirm('确认删除该报价单？将同时删除关联的合同、服务内容和付款单！')) return;
+        const quote = quoteData.find(q => q.id === id);
+        if (!quote) return;
+        // 删除关联合同
+        contractData = contractData.filter(c => c.quoteId !== id);
+        // 删除关联服务内容
+        contentData = contentData.filter(c => c.contractId !== id);
+        // 删除关联付款单
+        paymentData = paymentData.filter(p => p.contractId !== id);
+        quoteData = quoteData.filter(q => q.id !== id);
+        saveAll();
+    }
 
     // ========== 合同 ==========
     function searchQuoteForContract() {
@@ -677,11 +701,12 @@
 
     function renderContract() {
         const tbody = document.getElementById('contractTableBody');
-        if (contractData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="7">暂无合同，点击 "创建合同" 添加</td></tr>`; return; }
+        if (contractData.length === 0) { tbody.innerHTML = `<tr class="empty-row"><td colspan="9">暂无合同，点击 "创建合同" 添加</td></tr>`; return; }
         tbody.innerHTML = contractData.map(c => `
             <tr class="hover:bg-gray-50">
                 <td class="td-style font-bold text-gray-900">${c.id}</td><td class="td-style font-mono text-xs">${c.quoteId}</td>
-                <td class="td-style">${c.kol}</td><td class="td-style">${c.payMethod}</td>
+                <td class="td-style">${c.kol}</td><td class="td-style">${c.platform || '-'}</td><td class="td-style">${c.format || '-'}</td>
+                <td class="td-style">${c.payMethod}</td>
                 <td class="td-style font-bold">$ ${c.amount}</td>
                 <td class="td-style">${c.fileData ? `<a href="${c.fileData}" target="_blank" class="file-preview-link">📄 查看PDF</a>` : '-'}</td>
                 <td class="td-style text-right">
@@ -734,7 +759,7 @@
         const payMethod = document.querySelector('input[name="pay"]:checked')?.value || '一次性';
         const filePreview = document.getElementById('contractFilePreview');
         const fileData = filePreview.dataset.fileData || '';
-        const obj = { id: id || generateId('CTR'), quoteId, kol: q.kol, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
+        const obj = { id: id || generateId('CTR'), quoteId, kol: q.kol, platform: q.platform, format: q.format, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
         if (id) { const idx = contractData.findIndex(c => c.id === id); if (idx>-1) contractData[idx] = obj; } else { contractData.push(obj); }
         saveAll();
         // 自动生成服务内容
@@ -754,7 +779,6 @@
     }
 
     function autoGenerateContent(contract) {
-        // 检查是否已存在该合同的服务内容
         const exists = contentData.some(c => c.contractId === contract.id);
         if (exists) return;
         const contentId = generateId('S');
@@ -773,7 +797,13 @@
         saveAll();
     }
 
-    function deleteContract(id) { if (confirm('确认删除？')) { contractData = contractData.filter(c => c.id !== id); contentData = contentData.filter(c => c.contractId !== id); saveAll(); } }
+    function deleteContract(id) {
+        if (!confirm('确认删除该合同？将同时删除关联的服务内容和付款单！')) return;
+        contentData = contentData.filter(c => c.contractId !== id);
+        paymentData = paymentData.filter(p => p.contractId !== id);
+        contractData = contractData.filter(c => c.id !== id);
+        saveAll();
+    }
 
     // ========== 服务内容 ==========
     function renderContent() {
@@ -809,7 +839,6 @@
         if (!c) return;
         document.getElementById('contentEditId').value = id;
         document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
-        // 显示关联信息
         document.getElementById('contentPreviewKol').textContent = c.kol || '-';
         document.getElementById('contentPreviewPlatform').textContent = c.platform || '-';
         document.getElementById('contentPreviewFormat').textContent = c.format || '-';
@@ -842,20 +871,16 @@
     function saveContent() {
         const id = document.getElementById('contentEditId').value;
         const videoPreview = document.getElementById('contentVideoPreview');
-        const obj = {
-            id: id,
-            contractId: contentData.find(c => c.id === id)?.contractId || '',
-            kol: contentData.find(c => c.id === id)?.kol || '',
-            platform: contentData.find(c => c.id === id)?.platform || '',
-            format: contentData.find(c => c.id === id)?.format || '',
+        const idx = contentData.findIndex(c => c.id === id);
+        if (idx === -1) { alert('数据异常，请刷新后重试'); return; }
+        contentData[idx] = {
+            ...contentData[idx],
             spk: document.getElementById('contentSpk').value.trim(),
             expiry: document.getElementById('contentExpiry').value,
             url: document.getElementById('contentUrl').value.trim(),
             zh: document.getElementById('contentZh').value.trim(),
-            videoData: videoPreview.dataset.videoData || ''
+            videoData: videoPreview.dataset.videoData || contentData[idx].videoData || ''
         };
-        const idx = contentData.findIndex(c => c.id === id);
-        if (idx > -1) contentData[idx] = obj;
         saveAll();
         forceCloseDrawer('drawer-content');
         document.getElementById('contentEditId').value = '';
@@ -868,7 +893,7 @@
         document.getElementById('contentVideoPreview').dataset.videoData = '';
     }
 
-    function deleteContent(id) { if (confirm('确认删除？')) { contentData = contentData.filter(c => c.id !== id); saveAll(); } }
+    function deleteContent(id) { if (confirm('确认删除该服务内容？')) { contentData = contentData.filter(c => c.id !== id); saveAll(); } }
 
     // ========== 付款 ==========
     function searchContractForPayment() {
@@ -1021,7 +1046,7 @@
         clearPaymentPreview();
     }
 
-    function deletePayment(id) { if (confirm('确认删除？')) { paymentData = paymentData.filter(p => p.id !== id); saveAll(); } }
+    function deletePayment(id) { if (confirm('确认删除该付款单？')) { paymentData = paymentData.filter(p => p.id !== id); saveAll(); } }
 
     // ========== 推广明细 ==========
     function renderPromotion() {
@@ -1060,7 +1085,7 @@
                 <td class="td-style">${c.platform || (contract?contract.platform:'-')}</td>
                 <td class="td-style">${c.format || (contract?contract.format:'-')}</td>
                 <td class="td-style text-xs">${c.spk || '-'}</td>
-                <td class="td-style"><span class="asset-translate" title="${c.zh || '-'}">${c.zh || '-'}</span></td>
+                <td class="td-style"><span class="asset-translate">${c.zh || '-'}</span></td>
                 <td class="td-style">${c.url ? `<a href="${c.url}" target="_blank" class="text-indigo-600 text-sm hover:underline">🔗 链接</a>` : '-'}</td>
             </tr>`;
         }).join('');
