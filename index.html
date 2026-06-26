@@ -567,15 +567,11 @@
         if (!confirm('确认删除该KOL？将同时删除关联的报价单、合同、服务内容和付款单！')) return;
         const kol = kolData.find(k => k.id === id);
         if (!kol) return;
-        // 删除关联报价单
         const quoteIds = quoteData.filter(q => q.kolId === id).map(q => q.id);
         quoteData = quoteData.filter(q => q.kolId !== id);
-        // 删除关联合同（通过报价单ID）
         contractData = contractData.filter(c => !quoteIds.includes(c.quoteId));
-        // 删除关联服务内容（通过合同ID）
         const contractIds = contractData.filter(c => quoteIds.includes(c.quoteId)).map(c => c.id);
         contentData = contentData.filter(c => !contractIds.includes(c.contractId));
-        // 删除关联付款单
         paymentData = paymentData.filter(p => !contractIds.includes(p.contractId));
         kolData = kolData.filter(k => k.id !== id);
         saveAll();
@@ -661,14 +657,10 @@
         if (!confirm('⚠️ 确认删除该报价单？\n\n这将同时删除：\n- 关联的合同\n- 关联的服务内容\n- 关联的付款单\n- 关联的素材\n\n此操作不可恢复！')) return;
         const quote = quoteData.find(q => q.id === id);
         if (!quote) return;
-        // 删除关联合同
         const contractIds = contractData.filter(c => c.quoteId === id).map(c => c.id);
         contractData = contractData.filter(c => c.quoteId !== id);
-        // 删除关联服务内容
         contentData = contentData.filter(c => !contractIds.includes(c.contractId));
-        // 删除关联付款单
         paymentData = paymentData.filter(p => !contractIds.includes(p.contractId));
-        // 删除报价单
         quoteData = quoteData.filter(q => q.id !== id);
         saveAll();
     }
@@ -766,7 +758,6 @@
         const obj = { id: id || generateId('CTR'), quoteId, kol: q.kol, platform: q.platform, format: q.format, payMethod, amount: q.amount, start: document.getElementById('contractStart').value, end: document.getElementById('contractEnd').value, fileData };
         if (id) { const idx = contractData.findIndex(c => c.id === id); if (idx>-1) contractData[idx] = obj; } else { contractData.push(obj); }
         saveAll();
-        // 自动生成服务内容
         autoGenerateContent(obj);
         forceCloseDrawer('drawer-contract');
         document.getElementById('contractEditId').value = '';
@@ -874,19 +865,22 @@
 
     function saveContent() {
         const id = document.getElementById('contentEditId').value;
+        if (!id) { alert('缺少内容ID，请重新打开编辑窗口'); return; }
         const videoPreview = document.getElementById('contentVideoPreview');
         const idx = contentData.findIndex(c => c.id === id);
-        if (idx === -1) { alert('数据异常，请刷新后重试'); return; }
-        contentData[idx] = {
-            ...contentData[idx],
-            spk: document.getElementById('contentSpk').value.trim(),
-            expiry: document.getElementById('contentExpiry').value,
-            url: document.getElementById('contentUrl').value.trim(),
-            zh: document.getElementById('contentZh').value.trim(),
-            videoData: videoPreview.dataset.videoData || contentData[idx].videoData || ''
-        };
+        if (idx === -1) { alert('数据异常，未找到该内容记录，请刷新后重试'); return; }
+        // 更新数据
+        contentData[idx].spk = document.getElementById('contentSpk').value.trim();
+        contentData[idx].expiry = document.getElementById('contentExpiry').value;
+        contentData[idx].url = document.getElementById('contentUrl').value.trim();
+        contentData[idx].zh = document.getElementById('contentZh').value.trim();
+        if (videoPreview.dataset.videoData) {
+            contentData[idx].videoData = videoPreview.dataset.videoData;
+        }
+        // 保存并关闭
         saveAll();
         forceCloseDrawer('drawer-content');
+        // 清空表单
         document.getElementById('contentEditId').value = '';
         document.getElementById('contentDrawerTitle').textContent = '编辑服务内容';
         document.getElementById('contentSpk').value = '';
@@ -970,19 +964,22 @@
         document.getElementById('paymentBeneficiaryAddr').value = p.beneficiaryAddr || '';
         document.getElementById('paymentStatus').value = p.status || '待打款';
         document.getElementById('paymentNote').value = p.note || '';
+        // 清空并重新设置文件预览
+        document.getElementById('invoicePreview').innerHTML = '';
+        document.getElementById('invoicePreview').dataset.fileData = '';
+        document.getElementById('voucherPreview').innerHTML = '';
+        document.getElementById('voucherPreview').dataset.fileData = '';
+        document.getElementById('invoiceName').textContent = '未选择';
+        document.getElementById('voucherName').textContent = '未选择';
         if (p.invoiceData) {
             document.getElementById('invoicePreview').innerHTML = `<a href="${p.invoiceData}" target="_blank" class="file-preview-link">📄 查看Invoice</a>`;
             document.getElementById('invoicePreview').dataset.fileData = p.invoiceData;
-        } else {
-            document.getElementById('invoicePreview').innerHTML = '';
-            document.getElementById('invoicePreview').dataset.fileData = '';
+            document.getElementById('invoiceName').textContent = '已上传';
         }
         if (p.voucherData) {
             document.getElementById('voucherPreview').innerHTML = `<a href="${p.voucherData}" target="_blank" class="file-preview-link">📄 查看凭证</a>`;
             document.getElementById('voucherPreview').dataset.fileData = p.voucherData;
-        } else {
-            document.getElementById('voucherPreview').innerHTML = '';
-            document.getElementById('voucherPreview').dataset.fileData = '';
+            document.getElementById('voucherName').textContent = '已上传';
         }
         openDrawer('drawer-payment');
     }
